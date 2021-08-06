@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Duplik_ja_yhtJulk_tunnistus", "Duplik_ja_yhtJulk_tunnistus\Duplik_ja_yhtJulk_tunnistus.csproj", "{30AB3775-587E-49BB-A3C5-8486067DF62D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{30AB3775-587E-49BB-A3C5-8486067DF62D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30AB3775-587E-49BB-A3C5-8486067DF62D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30AB3775-587E-49BB-A3C5-8486067DF62D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30AB3775-587E-49BB-A3C5-8486067DF62D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
