@@ -73,6 +73,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         // JulkaisunNimi
         // KustantajanNimi
         // EmojulkaisunNimi
+        // LehdenNimi
         public SqlDataReader ODS_JulkaisutTMP_hae_nimet(SqlConnection conn)
         {
 
@@ -80,7 +81,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             SqlCommand cmd = new SqlCommand();
 
-            cmd.CommandText = "SELECT JulkaisunTunnus, JulkaisunNimi, KustantajanNimi, EmojulkaisunNimi, DOI FROM dbo.ODS_JulkaisutTMP";
+            cmd.CommandText = "SELECT JulkaisunTunnus, JulkaisunNimi, KustantajanNimi, EmojulkaisunNimi, DOI, Lehdennimi FROM dbo.ODS_JulkaisutTMP";
             cmd.CommandType = CommandType.Text;
             cmd.Connection = conn;
 
@@ -242,15 +243,49 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     }
                 }
 
+                // Case 5: kuv = LehdenNimi
+                else if (kuv.Equals("LehdenNimi"))
+                {
+                    cmd = new SqlCommand("UPDATE dbo.ODS_JulkaisutTMP SET LehdenNimi = @LehdenNimi WHERE JulkaisunTunnus = @JulkaisunTunnus");
+                    cmd.CommandType = CommandType.Text;
+
+                    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // asetetaan commandTimeout = 180 (oletus = 30), koska ohjelma kaatuu joskus commandTimeout -virheeseen //
+                    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    cmd.CommandTimeout = 180;
+
+                    cmd.Connection = conn;
+
+                    // LehdenNimi
+                    if (String.IsNullOrEmpty(nimi))
+                    {
+                        cmd.Parameters.AddWithValue("@LehdenNimi", DBNull.Value);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@LehdenNimi", nimi);
+                    }
+
+                    // JulkaisunTunnus
+                    if (String.IsNullOrEmpty(julkTunnus))
+                    {
+                        cmd.Parameters.AddWithValue("@JulkaisunTunnus", DBNull.Value);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@JulkaisunTunnus", julkTunnus);
+                    }
+                }
+
 
                 cmd.ExecuteNonQuery();
-               
+
             }
 
             conn.Close();
 
         }
-        
+
 
         // [julkaisut_ods].[dbo].[SA_Julkaisut]
         //
@@ -365,11 +400,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public int loytyy_yhteisjulkaisu(string server, string julkTunnus, string doi, string issn1, string issn2, string isbn1, string isbn2, string volyymi, string numero, string sivut, string julkNimi, string julkTyyppi, string kustantaja, string emoJulkNimi, int ODStilaKoodi)
+        public int loytyy_yhteisjulkaisu(string server, string julkTunnus, string doi, string issn1, string issn2, string isbn1, string isbn2, string volyymi, string numero, string sivut, string julkNimi, string julkTyyppi, string kustantaja, string emoJulkNimi, string lehdenNimi, int vuosi, int ODStilaKoodi)
         {
 
             // vakio, joka palautetaan sen perusteella, mika match on kyseessa
-            // vakioita 4 ja 5 ei enaa tarkastella, koska ehtoihin 2 ja 3 lisattiin julkaisun nimi, 
+            // vakioita 4 ja 5 ei enaa tarkastella, koska Tunnistussääntöihin 2 ja 3 lisattiin julkaisun nimi, 
             // jota ei aikaisemmin ollut ko. ehdoissa
             int loytyy = 0; // 0 = ei matchia
             int loytyy_DOI = 1;
@@ -381,6 +416,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
             int loytyy_emoJulkaisunNimi_julkaisunNimi = 7; // koskee julkaisutyyppeja A3, A4, B2, B3, D1, D2, D3, E1, pl. introduction, esipuhe, johdanto
             int loytyy_ISBN1_julkaisunNimi = 8;
             int loytyy_ISBN2_julkaisunNimi = 9;
+            int loytyy_julkaisutyyppi_julkaisunNimi_lehdenNimi_julkaisuvuosi = 10; // koskee julkaisutyyppeja D1
+            int loytyy_julkaisutyyppi_julkaisunNimi_kustantajanNimi_julkaisuvuosi = 11; // koskee julkaisutyyppeja D4
+
 
             string connectionString_ods_julkaisut = "Server=" + server + ";Database=julkaisut_ods;Trusted_Connection=true";
 
@@ -388,16 +426,17 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             conn.Open();
 
-            ////////////////////////////////
-            // Ehto 1: kysely ehdolla DOI //
-            ////////////////////////////////
+            ///////////////////////////////////////////
+            // Tunnistussääntö 1: kysely ehdolla DOI //
+            /////////////////////////////////////////// 
             SqlCommand cmd = new SqlCommand();
             cmd.CommandType = CommandType.Text;
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // asetetaan commandTimeout = 180 (oletus = 30), koska ohjelma kaatuu joskus commandTimeout -virheeseen //
+            // asetetaan commandTimeout = 240 (oletus = 30), koska ohjelma kaatuu joskus commandTimeout -virheeseen //
             //////////////////////////////////////////////////////////////////////////////////////////////////////////
-            cmd.CommandTimeout = 180;
+            //Eri tarkastusehdot julkaisutyypistä riippuen 11.2.2022
+            cmd.CommandTimeout = 240;
 
             cmd.CommandText = "SELECT COUNT(*) FROM dbo.ODS_JulkaisutTMP WHERE DOI = @DOI AND JulkaisunTunnus <> @JulkaisunTunnus AND JulkaisunTilaKoodi > @JulkaisunTilaKoodi";
 
@@ -419,6 +458,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 cmd.Parameters.AddWithValue("@JulkaisunTunnus", julkTunnus);
             }
 
+
             cmd.Parameters.AddWithValue("@JulkaisunTilaKoodi", ODStilaKoodi);
 
             cmd.Connection = conn;
@@ -433,8 +473,12 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 return loytyy_DOI;
             }
 
+
+
+
+
             //////////////////////////////////////////////////////////////////////////////
-            // Ehto 2: kysely ehdolla ISSN1 + volyymi + numero + sivut + julkaisun nimi //
+            // Tunnistussääntö 2 variaatio 1 : kysely ehdolla ISSN1 + volyymi + numero + sivut + julkaisun nimi //
             //////////////////////////////////////////////////////////////////////////////
             cmd = new SqlCommand();
             cmd.CommandType = CommandType.Text;
@@ -512,7 +556,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
             //////////////////////////////////////////////////////////////////////////////
-            // Ehto 3: kysely ehdolla ISSN2 + volyymi + numero + sivut + julkaisun nimi //
+            // Tunnistussääntö  2 variaatio 2: kysely ehdolla ISSN2 + volyymi + numero + sivut + julkaisun nimi //
             //////////////////////////////////////////////////////////////////////////////
             cmd = new SqlCommand();
             cmd.CommandType = CommandType.Text;
@@ -589,9 +633,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
             }
 
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Ehto 6: kysely ehdolla julkaisutyyppi + julkaisun nimi + kustantaja (koskee julkaisutyyppeja C1, D5, E2, pl. Introduction, Esipuhe, Johdanto) //
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Tunnistussääntö 3: kysely ehdolla julkaisutyyppi + julkaisun nimi + kustantaja (koskee julkaisutyyppeja C1, D5, E2, pl. Introduction, Esipuhe, Johdanto) //
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             if (julkTyyppi.Equals("C1") || julkTyyppi.Equals("D5") || julkTyyppi.Equals("E2"))
             {
 
@@ -652,14 +696,14 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         return loytyy_julkaisutyyppi_julkaisunNimi_kustantaja;
                     }
 
-                }                
+                }
 
             }
 
 
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Ehto 7: kysely ehdolla emojulkaisun nimi + julkaisun nimi (koskee julkaisutyyppeja A3, A4, B2, B3, D1, D2, D3, E1, pl. Introduction, Esipuhe, Johdanto) //
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Tunnistussääntö 4: kysely ehdolla emojulkaisun nimi + julkaisun nimi (koskee julkaisutyyppeja A3, A4, B2, B3, D1, D2, D3,  E1, pl. Introduction, Esipuhe, Johdanto) //
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             if (julkTyyppi.Equals("A3") || julkTyyppi.Equals("A4") || julkTyyppi.Equals("B2") || julkTyyppi.Equals("B3") || julkTyyppi.Equals("D1") || julkTyyppi.Equals("D2") || julkTyyppi.Equals("D3") || julkTyyppi.Equals("E1"))
             {
 
@@ -718,7 +762,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
             ///////////////////////////////////////////////////
-            // Ehto 8: kysely ehdolla ISBN1 + julkaisun nimi //
+            // Tunnistussääntö 5 v.1: kysely ehdolla ISBN1 + julkaisun nimi //
             ///////////////////////////////////////////////////
             cmd = new SqlCommand();
             cmd.CommandType = CommandType.Text;
@@ -768,9 +812,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
             }
 
 
-            ///////////////////////////////////////////////////
-            // Ehto 9: kysely ehdolla ISBN2 + julkaisun nimi //
-            ///////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////
+            // Tunnistussääntö 5 v.2: kysely ehdolla ISBN2 + julkaisun nimi //
+            ///////////////////////////////////////////////////////
             cmd = new SqlCommand();
             cmd.CommandType = CommandType.Text;
 
@@ -819,17 +863,150 @@ namespace Duplik_ja_yhtJulk_tunnistus
             }
 
 
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Tunnistussääntö 6: kysely ehdolla julkaisutyyppi + julkaisun nimi + lehden nimi + julkaisuvuosi (koskee julkaisutyyppejaD1 //
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (julkTyyppi.Equals("D1"))
+            {
+                cmd = new SqlCommand();
+                cmd.CommandType = CommandType.Text;
+                //julkaisutyyppi + julkaisun nimi + lehden nimi + julkaisuvuosi
+                cmd.CommandText = "SELECT COUNT(*) FROM dbo.ODS_JulkaisutTMP WHERE JulkaisutyyppiKoodi = @JulkaisutyyppiKoodi AND  " +
+                "JulkaisunNimi = @JulkaisunNimi AND  lehdenNimi= @LehdenNimi AND Julkaisuvuosi = @Julkaisuvuosi AND " +
+                "JulkaisunTunnus <> @JulkaisunTunnus AND JulkaisunTilaKoodi > @JulkaisunTilaKoodi";
+
+                if (String.IsNullOrEmpty(julkTyyppi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", julkTyyppi);
+                }
+
+                if (String.IsNullOrEmpty(julkNimi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", julkNimi);
+                }
+
+                if (String.IsNullOrEmpty(lehdenNimi))
+                {
+                    cmd.Parameters.AddWithValue("@LehdenNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@LehdenNimi", lehdenNimi);
+                }
+
+
+                cmd.Parameters.AddWithValue("@Julkaisuvuosi", vuosi);
+
+                if (String.IsNullOrEmpty(julkTunnus))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", julkTunnus);
+                }
+
+                cmd.Parameters.AddWithValue("@JulkaisunTilaKoodi", ODStilaKoodi);
+
+                cmd.Connection = conn;
+
+                loytyy = (int)cmd.ExecuteScalar();
+
+                if (loytyy > 0)
+                {
+
+                    conn.Close();
+
+                    return loytyy_julkaisutyyppi_julkaisunNimi_lehdenNimi_julkaisuvuosi;
+                }
+
+            }
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Tunnistussääntö 7: kysely ehdolla julkaisutyyppi + julkaisun nimi + kustantajan nimi + julkaisuvuosi (koskee julkaisutyyppeja D4 //
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (julkTyyppi.Equals("D4"))
+            {
+                cmd = new SqlCommand();
+                cmd.CommandType = CommandType.Text;
+                //julkaisutyyppi + julkaisun nimi + lehden nimi + julkaisuvuosi
+                cmd.CommandText = "SELECT COUNT(*) FROM dbo.ODS_JulkaisutTMP WHERE JulkaisutyyppiKoodi = @JulkaisutyyppiKoodi AND  " +
+                "JulkaisunNimi = @JulkaisunNimi AND  KustantajanNimi= @KustantajanNimi AND Julkaisuvuosi = @Julkaisuvuosi AND " +
+                "JulkaisunTunnus <> @JulkaisunTunnus AND JulkaisunTilaKoodi > @JulkaisunTilaKoodi";
+
+                if (String.IsNullOrEmpty(julkTyyppi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", julkTyyppi);
+                }
+
+                if (String.IsNullOrEmpty(julkNimi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", julkNimi);
+                }
+
+                if (String.IsNullOrEmpty(kustantaja))
+                {
+                    cmd.Parameters.AddWithValue("@KustantajanNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@KustantajanNimi", kustantaja);
+                }
+
+
+                cmd.Parameters.AddWithValue("@Julkaisuvuosi", vuosi);
+
+                if (String.IsNullOrEmpty(julkTunnus))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", julkTunnus);
+                }
+
+                cmd.Parameters.AddWithValue("@JulkaisunTilaKoodi", ODStilaKoodi);
+
+                cmd.Connection = conn;
+
+                loytyy = (int)cmd.ExecuteScalar();
+
+                if (loytyy > 0)
+                {
+
+                    conn.Close();
+
+                    return loytyy_julkaisutyyppi_julkaisunNimi_kustantajanNimi_julkaisuvuosi;
+                }
+
+            }
+
             conn.Close();
 
             return loytyy;  // tanne mennaan, jos ei loydy matcheja (= yhteisjulkaisuja) eli loytyy = 0
 
-
         }
-
 
         /* Tasta alkavat haut sen perusteella, minka avulla matcheja saatiin */
 
-        // Ehto 1:
+        // Tunnistussääntö 1:
         public SqlDataReader haku_ODS_alueelta_DOI(SqlConnection conn, string julkTunnus, string doi, int ODStilaKoodi)
         {
 
@@ -865,11 +1042,12 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlDataReader reader = cmd.ExecuteReader();
 
             return reader;
-
         }
 
 
-        // Ehto 2:
+
+
+        // Tunnistussääntö 2 v.1 :
         // haetaan vain julkaisunTunnus ISSN1-tunnuksen perusteella
         public string haku_ODS_alueelta_ISSN1_volyymi_numero_sivut_julkaisunNimi(string server, string julkTunnus, string issn1, string volyymi, string numero, string sivut, string julkNimi, int ODStilaKoodi)
         {
@@ -953,7 +1131,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        // Ehto 3:
+        // Tunnistussääntö 2 v.2:
         // haetaan vain julkaisunTunnus ISSN2-tunnuksen perusteella
         public string haku_ODS_alueelta_ISSN2_volyymi_numero_sivut_julkaisunNimi(string server, string julkTunnus, string issn2, string volyymi, string numero, string sivut, string julkNimi, int ODStilaKoodi)
         {
@@ -1177,7 +1355,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        // Ehto 6:
+        // Tunnistussääntö 3:
         public SqlDataReader haku_ODS_alueelta_julkTyyppi_julkNimi_kustantaja(SqlConnection conn, string julkTunnus, string julkTyyppi, string julkNimi, string kustantaja, int ODStilaKoodi)
         {
 
@@ -1247,7 +1425,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        // Ehto 7:
+        // Tunnistussääntö 4:
         public SqlDataReader haku_ODS_alueelta_emoJulkNimi_julkNimi(SqlConnection conn, string julkTunnus, string julkTyyppi, string emoJulkNimi, string julkNimi, int ODStilaKoodi)
         {
 
@@ -1262,7 +1440,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandType = CommandType.Text;
 
-                    cmd.CommandText = "SELECT JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, JulkaisutyyppiKoodi FROM dbo.ODS_JulkaisutTMP WHERE EmoJulkaisunNimi = @EmoJulkaisunNimi AND JulkaisunNimi = @JulkaisunNimi AND JulkaisunTunnus <> @JulkaisunTunnus AND JulkaisunTilaKoodi > @JulkaisunTilaKoodi";
+                    cmd.CommandText = "SELECT JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, JulkaisutyyppiKoodi FROM dbo.ODS_JulkaisutTMP WHERE " +
+                    " EmoJulkaisunNimi = @EmoJulkaisunNimi AND JulkaisunNimi = @JulkaisunNimi AND JulkaisunTunnus <> @JulkaisunTunnus AND " +
+                    "JulkaisunTilaKoodi > @JulkaisunTilaKoodi";
 
                     if (String.IsNullOrEmpty(emoJulkNimi))
                     {
@@ -1308,7 +1488,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        // Ehto 8:
+        // Tunnistussääntö 5 v.1:
         public string haku_ODS_alueelta_ISBN1_julkNimi(string server, string julkTunnus, string isbn1, string julkNimi, int ODStilaKoodi)
         {
 
@@ -1364,7 +1544,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        // Ehto 9:
+        // Tunnistussääntö 5 v.2:
         public string haku_ODS_alueelta_ISBN2_julkNimi(string server, string julkTunnus, string isbn2, string julkNimi, int ODStilaKoodi)
         {
 
@@ -1419,6 +1599,149 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
         }
 
+        // Tunnistussääntö 6:
+
+
+        public SqlDataReader haku_ODS_alueelta_julkTyyppi_julkNimi_lehdenNimi_julkaisuvuosi(SqlConnection conn, string julkTyyppi, string julkNimi, string lehdenNimi, string julkTunnus, int vuosi, int ODStilaKoodi)
+        {
+
+            {
+
+
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandType = CommandType.Text;
+
+
+
+                cmd.CommandText = "SELECT JulkaisunTunnus FROM dbo.ODS_JulkaisutTMP WHERE JulkaisutyyppiKoodi = @JulkaisutyyppiKoodi AND  " +
+                        "JulkaisunNimi = @JulkaisunNimi AND  lehdenNimi= @LehdenNimi AND Julkaisuvuosi = @Julkaisuvuosi AND " +
+                        "JulkaisunTunnus <> @JulkaisunTunnus AND JulkaisunTilaKoodi > @JulkaisunTilaKoodi";
+
+                if (String.IsNullOrEmpty(julkTyyppi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", julkTyyppi);
+                }
+
+                if (String.IsNullOrEmpty(julkNimi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", julkNimi);
+                }
+
+                if (String.IsNullOrEmpty(lehdenNimi))
+                {
+                    cmd.Parameters.AddWithValue("@LehdenNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@LehdenNimi", lehdenNimi);
+                }
+
+
+                if (String.IsNullOrEmpty(julkTunnus))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", julkTunnus);
+                }
+
+                cmd.Parameters.AddWithValue("@Julkaisuvuosi", vuosi);
+
+                cmd.Parameters.AddWithValue("@JulkaisunTilaKoodi", ODStilaKoodi);
+
+
+                cmd.Connection = conn;
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                return reader;
+
+            }
+        }
+
+                    public SqlDataReader haku_ODS_alueelta_julkTyyppi_julkNimi_kustantajanNimi_julkaisuvuosi(SqlConnection conn, string julkTyyppi, string julkNimi, string kustantaja, string julkTunnus, int vuosi, int ODStilaKoodi)
+        {
+
+            {
+
+
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandType = CommandType.Text;
+
+
+
+                cmd.CommandText = "SELECT JulkaisunTunnus FROM dbo.ODS_JulkaisutTMP WHERE JulkaisutyyppiKoodi = @JulkaisutyyppiKoodi AND  " +
+                        "JulkaisunNimi = @JulkaisunNimi AND  KustantajanNimi = @KustantajanNimi AND Julkaisuvuosi = @Julkaisuvuosi AND " +
+                        "JulkaisunTunnus <> @JulkaisunTunnus AND JulkaisunTilaKoodi > @JulkaisunTilaKoodi";
+
+                if (String.IsNullOrEmpty(julkTyyppi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisutyyppiKoodi", julkTyyppi);
+                }
+
+                if (String.IsNullOrEmpty(julkNimi))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunNimi", julkNimi);
+                }
+
+                if (String.IsNullOrEmpty(kustantaja))
+                {
+                    cmd.Parameters.AddWithValue("@KustantajanNimi", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@KustantajanNimi", kustantaja);
+                }
+
+
+                if (String.IsNullOrEmpty(julkTunnus))
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@JulkaisunTunnus", julkTunnus);
+                }
+
+                cmd.Parameters.AddWithValue("@Julkaisuvuosi", vuosi);
+
+                cmd.Parameters.AddWithValue("@JulkaisunTilaKoodi", ODStilaKoodi);
+
+
+                cmd.Connection = conn;
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                return reader;
+
+            }
+
+        }
+    
+                   
+           
+        //##
 
         // [julkaisut_ods].[dbo].[SA_Julkaisut]
         //

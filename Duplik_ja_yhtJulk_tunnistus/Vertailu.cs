@@ -34,6 +34,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         //bool samaISBN
         //bool samaKustantaja
         //bool samaDOI
+        //bool samaLehdenNimi
         ////////////////////////////////////////
 
         ////////////////////////////////////////
@@ -498,6 +499,38 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             // testataan ovatko DOI-tunnukset samat
             if (!ekaDOI.Equals(tokaDOI))
+            {
+                return false;
+            }
+
+            return true;
+
+        }
+        ///////////////////////////////////////////////////////
+        //tutkitaan, onko julkaisuilla sama lehden nimi//
+        ///////////////////////////////////////////////////////
+        public bool samaLehdenNimi(string ekaLehdenNimi, string tokaLehdenNimi)
+        {
+
+            // tehdaan testit, jotta ei oteta mukaan tyhjia tai null-arvoja
+            if (ekaLehdenNimi == null || ekaLehdenNimi.Equals(""))
+            {
+                // tyhja merkkijono tai null
+                return false;
+
+            }
+            else if (tokaLehdenNimi == null || tokaLehdenNimi.Equals(""))
+            {
+                // tyhja merkkijono tai null
+                return false;
+            }
+
+
+            // trimmataan parametrit
+            ekaLehdenNimi = ekaLehdenNimi.Trim();
+            tokaLehdenNimi = tokaLehdenNimi.Trim();
+
+            if (!ekaLehdenNimi.Equals(tokaLehdenNimi))
             {
                 return false;
             }
