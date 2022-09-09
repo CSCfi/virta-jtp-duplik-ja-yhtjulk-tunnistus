@@ -51,8 +51,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 */
                 int VUOSI = 2014;
 
-                // 9-2022 tekijöidenLKM rajaus testi
-                int TekijoidenLkm = 2;
                 //---------------------------------------------------------------------------------------------------------------
 
 
@@ -79,20 +77,17 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
                 while (reader_ODS_TMP.Read())
                 {
-                    string ods_julkaisunTunnus = (string)reader_ODS_TMP["JulkaisunTunnus"];
-                    string ods_julkaisunNimi = reader_ODS_TMP["JulkaisunNimi"] == System.DBNull.Value ? null : (string)reader_ODS_TMP["JulkaisunNimi"];
+                    string ods_julkaisunTunnus = (string) reader_ODS_TMP["JulkaisunTunnus"];
+                    string ods_julkaisunNimi = reader_ODS_TMP["JulkaisunNimi"] == System.DBNull.Value ? null : (string) reader_ODS_TMP["JulkaisunNimi"];
                     string ods_kustantajanNimi = reader_ODS_TMP["KustantajanNimi"] == System.DBNull.Value ? null : (string)reader_ODS_TMP["KustantajanNimi"];
                     string ods_emojulkaisunNimi = reader_ODS_TMP["EmojulkaisunNimi"] == System.DBNull.Value ? null : (string)reader_ODS_TMP["EmojulkaisunNimi"];
                     string ods_doi = reader_ODS_TMP["DOI"] == System.DBNull.Value ? null : (string)reader_ODS_TMP["DOI"];
                     string ods_lehdenNimi = reader_ODS_TMP["LehdenNimi"] == System.DBNull.Value ? null : (string)reader_ODS_TMP["LehdenNimi"];
-                    // 9-2022 TESTI rajaus tekijöiden lkm:n mukaan
-                    TekijoidenLkm = reader_ODS_TMP["TekijoidenLkm"] == System.DBNull.Value ? 2 : (int)reader_ODS_TMP["TekijoidenLkm"];
                     string ods_edit_julkaisunNimi = ods_julkaisunNimi;
                     string ods_edit_kustantajanNimi = ods_kustantajanNimi;
                     string ods_edit_emojulkaisunNimi = ods_emojulkaisunNimi;
                     string ods_edit_doi = ods_doi;
                     string ods_edit_lehdenNimi = ods_lehdenNimi;
-                    
                     // muokataan nimet, jos ovat eri kuin null
                     if ((ods_julkaisunNimi != null) && !(ods_julkaisunNimi.Equals("")))
                     {
@@ -145,7 +140,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     }
 
                     // Case 5: lehdenNimi
-
+               
                     if ((ods_edit_lehdenNimi != null) && !(ods_lehdenNimi.Equals(ods_edit_lehdenNimi)))
                     {
                         tietokantaoperaatiot.ODS_JulkaisutTMP_update_nimi(server, ods_julkaisunTunnus, ods_edit_lehdenNimi, "LehdenNimi");
@@ -167,7 +162,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
                     string ekaOrganisaatio = (string)reader_SA["OrganisaatioTunnus"];
                     string ekaJulkaisunTunnus = (string)reader_SA["JulkaisunTunnus"];
-
+                  
                     /////////////////////////////////////////////////////////////////////
                     // Jos ekaJulkaisunTunnus kuuluu sellaisten julkaisunTunnusten joukkoon
                     // joita ei haluta tarkastella, niin sitten jatketaan seuraavalta kierrokselta.
@@ -218,7 +213,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 "0250197215","0279187316","0250198215","0279184816","0250184115","0279184916","0250186215","0279184116","0275242016","0277431916","0008114815","0277436316","0008485115","0275345516","0274501116","0274503016","0277998716",
 "0277987216","0277987316","0277998816","0274457216","0275151516","0008183315","0277755315","0280479916","0280480816","0026267913","0275312716","0007972915","0275549116","0247732212","0278732916","0278814815","0278815915",
 "0278771015","0280480016","0280480916","0280449117","0280525117","0280541417","0280541617","0280577617","0281380517","0281462517","0281463917","0007263315","0281462617","0361482319","0363294019","0361956419"};
-
+                   
 
                     bool non_duplicate_found = false;
 
@@ -267,15 +262,15 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     string ekaNumero = reader_SA["LehdenNumeroTeksti"] == System.DBNull.Value ? null : (string)reader_SA["LehdenNumeroTeksti"];
                     string ekaKustantaja = reader_SA["KustantajanNimi"] == System.DBNull.Value ? null : (string)reader_SA["KustantajanNimi"];
                     string ekaLehdenNimi = reader_SA["LehdenNimi"] == System.DBNull.Value ? null : (string)reader_SA["LehdenNimi"];
-
+                  
                     // muokataan ekaLehdenNimi siten, etta jos tulee stop_words -tai stop_chars, niin ne poistetaan
                     if (ekaLehdenNimi != null)
                     {
                         ekaLehdenNimi = apufunktiot.muokkaa_nimea(ekaLehdenNimi);
                     }
 
-
-
+                   
+                   
                     // muokataan ekaKustantajaa siten, etta jos tulee stop_words -tai stop_chars, niin ne poistetaan
                     if (ekaKustantaja != null)
                     {
@@ -283,7 +278,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     }
 
                     string ekaEmojulkaisunNimi = reader_SA["EmojulkaisunNimi"] == System.DBNull.Value ? null : (string)reader_SA["EmojulkaisunNimi"];
-
+                    
                     // muokataan ekaEmojulkaisunNimea siten, etta jos tulee stop_words -tai stop_chars, niin ne poistetaan
                     if (ekaEmojulkaisunNimi != null)
                     {
@@ -442,8 +437,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
                     int ODStilaKoodi = 0; // ODS_Julkaisut-alueen tilaKoodi ei saa olla -1 tai 0. Jos on -1 tai 0, niin ko. julkaisua ei oteta mukaan (jos on -1, niin kyseessa on epavalidi julkaisu ja jos on 0, niin kyseessa on jo aikaisemmin sisaiseksi duplikaatiksi identifioitu julkaisu)
-                    //MM -->
-                    int loytyy_yhteisjulkaisu;
+
+                    int loytyy_yhteisjulkaisu = tietokantaoperaatiot.loytyy_yhteisjulkaisu(server, ekaJulkaisunTunnus, ekaDOI, ekaISSN1, ekaISSN2, ekaISBN1, ekaISBN2, ekaVolyymi, ekaNumero, ekatSivut, ekaJulkaisunNimi, ekaJulkaisutyyppi, ekaKustantaja, ekaEmojulkaisunNimi, ekaLehdenNimi, ekaJulkaisuvuosi, ODStilaKoodi);
+
+
                     // Jos loydetaan yhteisjulkaisuja, niin nama ovat niiden ODS_alueen julkaisunTunnus ja julkaisunOrgTunnus, organisaatio ja julkaisutyyppi
                     string julkaisunTunnus = "";
                     string julkaisunOrgTunnus = "";
@@ -453,29 +450,18 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     string julkaisunNimi = "";  // tata kaytetaan vain DOI-matchauksessa A3-tyypin julkaisuille
                     string DOI = "";    // tata kaytetaan tarkistuksina tapauksille loytyy_yhteisjulkaisu > 1
 
+                    ///////////////////////////////////////////////////////////////////////////////////////
+                    // Jos mennaan ensimmaiseen if-lauseeseen alla, niin julkaisu ei ole yhteisjulkaisu. // 
+                    // Talloin pitaa tarkistaa, onko [julkaisut_mds].[koodi].[JulkaisunTunnus]-taulussa  //
+                    // kyseiselle julkaisulle, Yhteisjulkaisu_ID <> '0'. Jos Yhteisjulkaisu_ID <> '0',   //
+                    // niin julkaisulle pitaa asettaa Yhteisjulkaisu_ID = '0'. Lisaksi jos ko.           //
+                    // yhteisjulkaisussa on ollut vain kaksi organisaatiota, pitaa myos yhteisjulkaisun  //
+                    // toiselle osapuolelle asettaa Yhteisjulkaisu_ID = '0'. Jos yhteisjulkaisussa on    //
+                    // enemman kuin kaksi organisaatiota jatetaan muille organisaatioille edelleen       //
+                    // Yhteisjulkaisu_ID kuin se oli aluksi.                                             //
+                    ///////////////////////////////////////////////////////////////////////////////////////
 
-                    if (TekijoidenLkm > 1)
-                    {
-                        loytyy_yhteisjulkaisu = tietokantaoperaatiot.loytyy_yhteisjulkaisu(server, ekaJulkaisunTunnus, ekaDOI, ekaISSN1, ekaISSN2, ekaISBN1, ekaISBN2, ekaVolyymi, ekaNumero, ekatSivut, ekaJulkaisunNimi, ekaJulkaisutyyppi, ekaKustantaja, ekaEmojulkaisunNimi, ekaLehdenNimi, ekaJulkaisuvuosi, ODStilaKoodi);
 
-
-                        
-                        ///////////////////////////////////////////////////////////////////////////////////////
-                        // Jos mennaan ensimmaiseen if-lauseeseen alla, niin julkaisu ei ole yhteisjulkaisu. // 
-                        // Talloin pitaa tarkistaa, onko [julkaisut_mds].[koodi].[JulkaisunTunnus]-taulussa  //
-                        // kyseiselle julkaisulle, Yhteisjulkaisu_ID <> '0'. Jos Yhteisjulkaisu_ID <> '0',   //
-                        // niin julkaisulle pitaa asettaa Yhteisjulkaisu_ID = '0'. Lisaksi jos ko.           //
-                        // yhteisjulkaisussa on ollut vain kaksi organisaatiota, pitaa myos yhteisjulkaisun  //
-                        // toiselle osapuolelle asettaa Yhteisjulkaisu_ID = '0'. Jos yhteisjulkaisussa on    //
-                        // enemman kuin kaksi organisaatiota jatetaan muille organisaatioille edelleen       //
-                        // Yhteisjulkaisu_ID kuin se oli aluksi.                                             //
-                        ///////////////////////////////////////////////////////////////////////////////////////
-                    }
-                    else
-                    {
-                        loytyy_yhteisjulkaisu = 0;
-                    }
-                    // <-- MM
 
                     if (loytyy_yhteisjulkaisu == 0)
                     {
@@ -639,7 +625,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     else if (loytyy_yhteisjulkaisu == 11)
                     {
                         SqlConnection conn = new SqlConnection(connectionString_ods_julkaisut);
-                        SqlDataReader reader = tietokantaoperaatiot.haku_ODS_alueelta_julkTyyppi_julkNimi_kustantajanNimi_julkaisuvuosi(conn, ekaJulkaisunTunnus, ekaJulkaisutyyppi, ekaJulkaisunNimi, ekaKustantaja, ekaJulkaisuvuosi, ODStilaKoodi);
+                        SqlDataReader reader = tietokantaoperaatiot.haku_ODS_alueelta_julkTyyppi_julkNimi_kustantajanNimi_julkaisuvuosi(conn, ekaJulkaisunTunnus, ekaJulkaisutyyppi, ekaJulkaisunNimi,  ekaKustantaja, ekaJulkaisuvuosi, ODStilaKoodi);
 
                         while (reader.Read())
                         {
@@ -672,8 +658,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
                     bool julkaisunTunnus_loytyy_SA_alueelta_tilakoodilla_miinus_yksi = tietokantaoperaatiot.julkaisunTunnus_loytyy_SA_alueelta_tilakoodilla_miinus_yksi(server, julkaisunTunnus);
 
-                    if (julkaisunTunnus_loytyy_SA_alueelta_tilakoodilla_miinus_yksi)
-                    {
+                    if (julkaisunTunnus_loytyy_SA_alueelta_tilakoodilla_miinus_yksi) {
                         continue;
                     }
 
@@ -687,8 +672,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     if (loytyy_yhteisjulkaisu > 1)
                     {
-                        if ((ekaDOI != null) && !(ekaDOI.Equals("")) && (DOI != null) && !(DOI.Equals("")) && !(ekaDOI.Equals(DOI)))
-                        {
+                        if ((ekaDOI != null) && !(ekaDOI.Equals("")) && (DOI != null) && !(DOI.Equals("")) && !(ekaDOI.Equals(DOI))) {
                             continue;
                         }
                     }
@@ -766,17 +750,17 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     // Jos mennaan tahan haaraan, niin loytyy match DOIn perusteella, mutta koska kummankin osapuolen                                           // 
                     // julkaisutyyppina on A3, A4, B2, B3, D2, D3, E1 ja julkaisujen nimet eivat matchaa, ei tama ole yhteisjulkaisu tai duplikaattikandidaatti //
                     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    if ((loytyy_yhteisjulkaisu == 1) &&
+                    if ((loytyy_yhteisjulkaisu == 1) && 
                         (
                         (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("A3")) || (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("A4")) ||
                         (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("B2")) || (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("B3")) ||
                         (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("D2")) || (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("D3")) ||
-                        (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("E1")) || (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("A3")) ||
-                        (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("A4")) || (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("B2")) ||
-                        (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("B3")) || (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("D2")) ||
+                        (ekaJulkaisutyyppi.Equals("A3")) && (julkaisutyyppi.Equals("E1")) || (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("A3")) || 
+                        (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("A4")) || (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("B2")) || 
+                        (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("B3")) || (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("D2")) || 
                         (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("D3")) || (ekaJulkaisutyyppi.Equals("A4")) && (julkaisutyyppi.Equals("E1")) ||
                         (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("A3")) || (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("A4")) ||
-                        (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("B2")) || (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("B3")) ||
+                        (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("B2")) || (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("B3")) || 
                         (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("D2")) || (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("D3")) ||
                         (ekaJulkaisutyyppi.Equals("B2")) && (julkaisutyyppi.Equals("E1")) || (ekaJulkaisutyyppi.Equals("B3")) && (julkaisutyyppi.Equals("A3")) ||
                         (ekaJulkaisutyyppi.Equals("B3")) && (julkaisutyyppi.Equals("A4")) || (ekaJulkaisutyyppi.Equals("B3")) && (julkaisutyyppi.Equals("B2")) ||
@@ -888,7 +872,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                                             tietokantaoperaatiot.julkaisut_update_tilaKoodi(server, tilaKoodi_sisainen_duplikaatti, ekaJulkaisunTunnus, "SA");
 
                                         }
-
+                       
                                     }
 
                                 }
@@ -1058,7 +1042,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                                                 tietokantaoperaatiot.tarkistusLoki_insert_rivi(server, ekaJulkaisunTunnus, ekaJulkaisunOrgTunnus, ekaOrganisaatio, ekaLataus_Id, tarkistusID_sisainen_duplikaatti, tilaKoodi_sisainen_duplikaatti, julkOrgTunnus);
 
                                             }
-
+                                            
                                         }
 
                                     }
@@ -1073,12 +1057,12 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         }
 
                     }
-
+                    
 
                     // Tanne hypataan jos on tilanne, jossa julkaisu on vaarin identifioitu duplikaatiksi.
                     // Ts. jatetaan kierros kesken ja jatketaan seuraavasta julkaisusta
                     //ENDLOOP:;
-
+                   
 
                 }
 
@@ -1108,4 +1092,3 @@ namespace Duplik_ja_yhtJulk_tunnistus
     }
 
 }
-

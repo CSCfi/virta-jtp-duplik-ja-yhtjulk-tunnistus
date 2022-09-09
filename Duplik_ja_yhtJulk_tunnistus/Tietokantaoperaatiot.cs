@@ -81,7 +81,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             SqlCommand cmd = new SqlCommand();
 
-            cmd.CommandText = "SELECT JulkaisunTunnus, JulkaisunNimi, KustantajanNimi, EmojulkaisunNimi, DOI, Lehdennimi, TekijoidenLkm FROM dbo.ODS_JulkaisutTMP";
+            cmd.CommandText = "SELECT JulkaisunTunnus, JulkaisunNimi, KustantajanNimi, EmojulkaisunNimi, DOI, Lehdennimi FROM dbo.ODS_JulkaisutTMP";
             cmd.CommandType = CommandType.Text;
             cmd.Connection = conn;
 
