@@ -425,7 +425,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     // Ehto 4: ISSN1 + volyymi + numero + julkaisun nimi
                     // Ehto 5: ISSN2 + volyymi + numero + julkaisun nimi
 
-                    // Tunnistussääntö 3 - Ehto 6: julkaisutyyppi + kustantaja + julkaisun nimi (koskee julkaisutyyppeja C1, D5, E2, pl. Introduction, Esipuhe, Johdanto)
+                    // Tunnistussääntö 3 - Ehto 6: julkaisutyyppi + kustantaja + julkaisun nimi (koskee julkaisutyyppeja C1, D5, E1, E2 pl. Introduction, Esipuhe, Johdanto)
                     // Tunnistussääntö 4 - Ehto 7: emojulkaisun nimi + julkaisun nimi (koskee julkaisutyyppeja A3, A4, B2, B3, D1, D2, D3, E1, pl. Introduction, Esipuhe, Johdanto)
                     // Tunnistussääntö 5 v1 - Ehto 8: ISBN1 + julkaisun nimi
                     // Tunnistussääntö 5 v1 - Ehto 9: ISBN2 + julkaisun nimi
@@ -490,12 +490,12 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         while (reader.Read())
                         {
 
-                            julkaisunTunnus = (string)reader["JulkaisunTunnus"];
+                            julkaisunTunnus =  (string)reader["JulkaisunTunnus"];
                             julkaisunOrgTunnus = (string)reader["JulkaisunOrgTunnus"];
                             organisaatio = (string)reader["OrganisaatioTunnus"];
                             //yhteisjulkaisu_Id = tietokantaoperaatiot.hae_Yhteisjulkaisu_ID(julkaisunTunnus);
-                            julkaisutyyppi = (string)reader["JulkaisutyyppiKoodi"];
-                            julkaisunNimi = (string)reader["JulkaisunNimi"];
+                            julkaisutyyppi = reader["Julkaisutyyppikoodi"] == System.DBNull.Value ? null : (string)reader["JulkaisutyyppiKoodi"];
+                            julkaisunNimi = reader["JulkaisunNimi"] == System.DBNull.Value ? null : (string)reader["JulkaisunNimi"];
 
 
                         }
@@ -544,7 +544,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                             julkaisunOrgTunnus = (string)reader["JulkaisunOrgTunnus"];
                             organisaatio = (string)reader["OrganisaatioTunnus"];
                             //yhteisjulkaisu_Id = tietokantaoperaatiot.hae_Yhteisjulkaisu_ID(julkaisunTunnus);
-                            julkaisutyyppi = (string)reader["JulkaisutyyppiKoodi"];
+                            julkaisutyyppi = reader["JulkaisutyyppiKoodi"] == System.DBNull.Value ? null : (string)reader["JulkaisutyyppiKoodi"];
 
                             DOI = tietokantaoperaatiot.hae_DOI_julkaisunTunnuksella(server, julkaisunTunnus);
 
@@ -616,7 +616,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                             julkaisunOrgTunnus = (string)reader["JulkaisunOrgTunnus"];
                             organisaatio = (string)reader["OrganisaatioTunnus"];
                             //yhteisjulkaisu_Id = tietokantaoperaatiot.hae_Yhteisjulkaisu_ID(julkaisunTunnus);
-                            julkaisutyyppi = (string)reader["JulkaisutyyppiKoodi"];
+                            julkaisutyyppi = reader["JulkaisutyyppiKoodi"] == System.DBNull.Value ? null : (string)reader["JulkaisutyyppiKoodi"];
 
                             DOI = tietokantaoperaatiot.hae_DOI_julkaisunTunnuksella(server, julkaisunTunnus);
 
@@ -634,9 +634,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
                             julkaisunOrgTunnus = (string)reader["JulkaisunOrgTunnus"];
                             organisaatio = (string)reader["OrganisaatioTunnus"];
                             //yhteisjulkaisu_Id = tietokantaoperaatiot.hae_Yhteisjulkaisu_ID(julkaisunTunnus);
-                            julkaisutyyppi = (string)reader["JulkaisutyyppiKoodi"];
+                            julkaisutyyppi = reader["JulkaisutyyppiKoodi"] == System.DBNull.Value ? null : (string)reader["JulkaisutyyppiKoodi"];
 
-                            DOI = tietokantaoperaatiot.hae_DOI_julkaisunTunnuksella(server, julkaisunTunnus);
+                            DOI =  tietokantaoperaatiot.hae_DOI_julkaisunTunnuksella(server, julkaisunTunnus);
 
                         }
 

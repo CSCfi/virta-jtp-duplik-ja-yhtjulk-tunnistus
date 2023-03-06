@@ -412,7 +412,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             int loytyy_ISSN2_volyymi_numero_sivut_julkaisunNimi = 3;
             //int loytyy_ISSN1_volyymi_numero_julkaisunNimi = 4;
             //int loytyy_ISSN2_volyymi_numero_julkaisunNimi = 5;
-            int loytyy_julkaisutyyppi_julkaisunNimi_kustantaja = 6; // koskee julkaisutyyppeja C1, D5, E2, pl. introduction, esipuhe, johdanto
+            int loytyy_julkaisutyyppi_julkaisunNimi_kustantaja = 6; // koskee julkaisutyyppeja C1, D5, E1, E2, pl. introduction, esipuhe, johdanto
             int loytyy_emoJulkaisunNimi_julkaisunNimi = 7; // koskee julkaisutyyppeja A3, A4, B2, B3, D1, D2, D3, E1, pl. introduction, esipuhe, johdanto
             int loytyy_ISBN1_julkaisunNimi = 8;
             int loytyy_ISBN2_julkaisunNimi = 9;
@@ -634,9 +634,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Tunnistussääntö 3: kysely ehdolla julkaisutyyppi + julkaisun nimi + kustantaja (koskee julkaisutyyppeja C1, D5, E2, pl. Introduction, Esipuhe, Johdanto) //
+            // Tunnistussääntö 3: kysely ehdolla julkaisutyyppi + julkaisun nimi + kustantaja (koskee julkaisutyyppeja C1, D5, E1, E2, pl. Introduction, Esipuhe, Johdanto) //
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            if (julkTyyppi.Equals("C1") || julkTyyppi.Equals("D5") || julkTyyppi.Equals("E2"))
+            if (julkTyyppi.Equals("C1") || julkTyyppi.Equals("D5") || julkTyyppi.Equals("E1") || julkTyyppi.Equals("E2"))
             {
 
                 if (!(julkNimi.Equals("introduction")) && !(julkNimi.Equals("esipuhe")) && !(julkNimi.Equals("johdanto")))
@@ -1045,8 +1045,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-
-
         // Tunnistussääntö 2 v.1 :
         // haetaan vain julkaisunTunnus ISSN1-tunnuksen perusteella
         public string haku_ODS_alueelta_ISSN1_volyymi_numero_sivut_julkaisunNimi(string server, string julkTunnus, string issn1, string volyymi, string numero, string sivut, string julkNimi, int ODStilaKoodi)
@@ -1359,7 +1357,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         public SqlDataReader haku_ODS_alueelta_julkTyyppi_julkNimi_kustantaja(SqlConnection conn, string julkTunnus, string julkTyyppi, string julkNimi, string kustantaja, int ODStilaKoodi)
         {
 
-            if (julkTyyppi.Equals("C1") || julkTyyppi.Equals("D5") || julkTyyppi.Equals("E2"))
+            if (julkTyyppi.Equals("C1") || julkTyyppi.Equals("D5") || julkTyyppi.Equals("E1" )|| julkTyyppi.Equals("E2"))
             {
 
                 if (!(julkNimi.Equals("introduction")) && !(julkNimi.Equals("esipuhe")) && !(julkNimi.Equals("johdanto")))
@@ -1600,8 +1598,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
         // Tunnistussääntö 6:
-
-
         public SqlDataReader haku_ODS_alueelta_julkTyyppi_julkNimi_lehdenNimi_julkaisuvuosi(SqlConnection conn, string julkTyyppi, string julkNimi, string lehdenNimi, string julkTunnus, int vuosi, int ODStilaKoodi)
         {
 
@@ -1670,7 +1666,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             }
         }
 
-                    public SqlDataReader haku_ODS_alueelta_julkTyyppi_julkNimi_kustantajanNimi_julkaisuvuosi(SqlConnection conn, string julkTyyppi, string julkNimi, string kustantaja, string julkTunnus, int vuosi, int ODStilaKoodi)
+        public SqlDataReader haku_ODS_alueelta_julkTyyppi_julkNimi_kustantajanNimi_julkaisuvuosi(SqlConnection conn, string julkTyyppi, string julkNimi, string kustantaja, string julkTunnus, int vuosi, int ODStilaKoodi)
         {
 
             {
@@ -2068,7 +2064,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
             return false;
 
         }
-
 
 
 
