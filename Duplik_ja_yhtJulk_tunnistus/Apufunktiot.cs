@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Data;
+
 
 namespace Duplik_ja_yhtJulk_tunnistus
 {
@@ -26,6 +24,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
         // Palautetaan muokattu merkkijono.
         public string muokkaa_nimea(string nimi)
         {
+            if (nimi == null || nimi.Equals(""))
+            {
+                return null;
+            }
+
             // Muutetaan nimi LowerCase:ksi ja trimmataan
             nimi = nimi.ToLower().Trim();
 
@@ -61,41 +64,39 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             // Poistetaan sitten nimen alusta sanat the, a ja an
             string sana = "";
-
-            for (int i = 0; i < nimi.Length; i++)
+            for (int i = 1; i < Math.Min(nimi.Length, 5); i++)
             {
-
-                if (nimi[i] != ' ')
+                if (nimi[i] == ' ')
                 {
-                    sana = sana + nimi[i];
-                }
-
-                else
-                {
-                    sana = sana + nimi[i];
-
+                    sana = nimi.Substring(0, i + 1);
                     if (sana.Equals("the ") || sana.Equals("a ") || sana.Equals("an "))
                     {
-                        nimi = nimi.Replace(sana, "").Trim();
+                        //Console.WriteLine(nimi + "|" + nimi.Substring(i + 1));
+                        nimi = nimi.Substring(i + 1);
                     }
-
                     break;
                 }
-
-
             }
+
 
             return nimi;
 
         }
 
 
-        public string muokkaaDOI(string doi)
+        public string muokkaa_DOI(string doi)
         {
 
-            if (doi == null)
+            // Muokataan DOI-tunnusta, mikali se ei ole null ja pituus on yli 2. 
+            // Muokkauksella halutaan, etta DOI-tunnus alkaa oikeassa muodossa eli etta ensimmainen merkki on 1 ja toinen 0.
+            if (doi == null || doi.Equals(""))
             {
-                return "";
+                return null;
+            }
+            
+            if (doi.Length <= 2)
+            {
+                return doi;
             }
 
             // trimmataan aluksi doi
@@ -139,6 +140,118 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             return newDOI;
 
+        }
+
+
+        public static DataTable MakeDataTable()
+        {
+            // Create a new DataTable.
+            DataTable table = new DataTable("TMP_Table");
+
+            // Declare variables for DataColumn and DataRow objects.
+            DataColumn column;
+
+            // Create new DataColumn, set DataType, ColumnName and add to DataTable.
+            // 1
+            column = new DataColumn("JulkaisunTunnus");
+            column.Caption = "JulkaisunTunnus";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 2
+            column = new DataColumn("JulkaisunNimi");
+            column.Caption = "JulkaisunNimi";
+            column.DataType = Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 3
+            column = new DataColumn("KustantajanNimi");
+            column.Caption = "KustantajanNimi";
+            column.DataType = Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 4
+            column = new DataColumn("EmojulkaisunNimi");
+            column.Caption = "EmojulkaisunNimi";
+            column.DataType = Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 5
+            column = new DataColumn("DOI");
+            column.Caption = "DOI";
+            column.DataType = Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 6
+            column = new DataColumn("LehdenNimi");
+            column.Caption = "Lehdennimi";
+            column.DataType = Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 7
+            column = new DataColumn("OrganisaatioTunnus");
+            column.Caption = "OrganisaatioTunnus";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 8
+            column = new DataColumn("JulkaisunOrgTunnus");
+            column.Caption = "JulkaisunOrgTunnus";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 9
+            column = new DataColumn("Lataus_ID");
+            column.Caption = "Lataus_ID";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 10
+            column = new DataColumn("JulkaisunTilaKoodi");
+            column.Caption = "JulkaisunTilaKoodi";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 11
+            column = new DataColumn("JulkaisutyyppiKoodi");
+            column.Caption = "JulkaisutyyppiKoodi";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 12
+            column = new DataColumn("SivunumeroTeksti");
+            column.Caption = "SivunumeroTeksti";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 13
+            column = new DataColumn("VolyymiTeksti");
+            column.Caption = "VolyymiTeksti";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            // 14
+            column = new DataColumn("LehdenNumeroTeksti");
+            column.Caption = "LehdenNumeroTeksti";
+            column.DataType = System.Type.GetType("System.String");
+            table.Columns.Add(column);
+
+            return table;
+        }
+
+
+        public void tulosta_datataulu_konsoliin(DataTable dt)
+        {
+            foreach (DataRow dr in dt.Rows)
+            {
+                foreach (var item in dr.ItemArray)
+                {
+                    Console.WriteLine(item + "|");
+                    //if (item.ToString() == "0330267521") { Console.ReadKey(); }
+                }
+                Console.WriteLine();
+                Console.WriteLine("------uusi------");
+            }
         }
 
     }
