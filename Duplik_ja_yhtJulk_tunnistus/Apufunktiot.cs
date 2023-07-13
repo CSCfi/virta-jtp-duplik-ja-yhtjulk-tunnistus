@@ -17,11 +17,8 @@ namespace Duplik_ja_yhtJulk_tunnistus
         private string[] stop_chars = { "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`", "{", "|", "}", "~", "£", "¿", 
                                         "®", "¬", "½", "¼", "«", "»", "©", "┐", "└", "┴", "┬", "├", "─", "┼", "┘", "┌", "¦", "¯", "´", "≡", "±", "‗", "¾", "¶", "§", "÷", "¸", "°", "¨", "·", "¹", "³", "²", "–"};
 
-        Tietokantaoperaatiot tietokantaoperaatiot = new Tietokantaoperaatiot();
-
-        // Muokataan parametrina annettua nimea siten, etta nimesta poistetaan stop wordsit ja stop charsit.
-        // Lisaksi alusta poistetaan the, a ja an -merkit ja merkkijono trimmataan.
-        // Palautetaan muokattu merkkijono.
+   
+        
         public string muokkaa_nimea(string nimi)
         {
             if (nimi == null || nimi.Equals(""))
@@ -141,104 +138,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             return newDOI;
 
         }
-
-
-        public static DataTable MakeDataTable()
-        {
-            // Create a new DataTable.
-            DataTable table = new DataTable("TMP_Table");
-
-            // Declare variables for DataColumn and DataRow objects.
-            DataColumn column;
-
-            // Create new DataColumn, set DataType, ColumnName and add to DataTable.
-            // 1
-            column = new DataColumn("JulkaisunTunnus");
-            column.Caption = "JulkaisunTunnus";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 2
-            column = new DataColumn("JulkaisunNimi");
-            column.Caption = "JulkaisunNimi";
-            column.DataType = Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 3
-            column = new DataColumn("KustantajanNimi");
-            column.Caption = "KustantajanNimi";
-            column.DataType = Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 4
-            column = new DataColumn("EmojulkaisunNimi");
-            column.Caption = "EmojulkaisunNimi";
-            column.DataType = Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 5
-            column = new DataColumn("DOI");
-            column.Caption = "DOI";
-            column.DataType = Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 6
-            column = new DataColumn("LehdenNimi");
-            column.Caption = "Lehdennimi";
-            column.DataType = Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 7
-            column = new DataColumn("OrganisaatioTunnus");
-            column.Caption = "OrganisaatioTunnus";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 8
-            column = new DataColumn("JulkaisunOrgTunnus");
-            column.Caption = "JulkaisunOrgTunnus";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 9
-            column = new DataColumn("Lataus_ID");
-            column.Caption = "Lataus_ID";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 10
-            column = new DataColumn("JulkaisunTilaKoodi");
-            column.Caption = "JulkaisunTilaKoodi";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 11
-            column = new DataColumn("JulkaisutyyppiKoodi");
-            column.Caption = "JulkaisutyyppiKoodi";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 12
-            column = new DataColumn("SivunumeroTeksti");
-            column.Caption = "SivunumeroTeksti";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 13
-            column = new DataColumn("VolyymiTeksti");
-            column.Caption = "VolyymiTeksti";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            // 14
-            column = new DataColumn("LehdenNumeroTeksti");
-            column.Caption = "LehdenNumeroTeksti";
-            column.DataType = System.Type.GetType("System.String");
-            table.Columns.Add(column);
-
-            return table;
-        }
-
+       
 
         public void tulosta_datataulu_konsoliin(DataTable dt)
         {
