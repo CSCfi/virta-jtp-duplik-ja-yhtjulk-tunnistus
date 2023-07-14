@@ -161,10 +161,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
                 Rajoitteet:
                 Tunnistussäännöt 1 - 7
-                    - julkaisut_mds.dbo.ei_duplikaatit_julkaisutyyppiparit
+                    - julkaisut_ods.dbo.EiYhteisjulkaisuJulkaisutyyppiparit
                     - julkaisut_ods.dbo.EiDuplikaattiTarkistusta
-                    - julkaisut_ods.dbo.EiYhteisjulkaisuTarkistusta
                 Tunnistussäännöt 2 - 5
+                    - DOIt eivät saa olla erisuuria
                 
                 
                 LIPUTUS
