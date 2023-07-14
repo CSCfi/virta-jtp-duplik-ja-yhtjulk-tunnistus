@@ -125,7 +125,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // ISSN- ja ISBN-tietojen päivitys SA_JulkaisutTMP-tauluun
             tietokantaoperaatiot.paivita_ISSN_ja_ISBN_tunnukset(taulu1);
 
-            tietokantaoperaatiot.uudelleenjarjesta_indeksit(taulu1);
+            tietokantaoperaatiot.uudelleenrakenna_indeksit(taulu1);
             tietokantaoperaatiot.uudelleenjarjesta_indeksit(taulu2);
 
 
