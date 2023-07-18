@@ -51,11 +51,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.cmd.CommandText = "SELECT TarkistusID FROM Julkaisut_ods.dbo.Tarkistukset WHERE Koodi = @koodi";           
             SqlConn.cmd.Parameters.AddWithValue("@koodi", koodi);
 
-            int maara = (int)Int32.Parse(SqlConn.cmd.ExecuteScalar().ToString());
+            int id = (int)Int32.Parse(SqlConn.cmd.ExecuteScalar().ToString());
 
             SqlConn.Sulje();
 
-            return maara;
+            return id;
         }
 
 
