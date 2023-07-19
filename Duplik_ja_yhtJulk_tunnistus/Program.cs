@@ -215,10 +215,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
             */
 
 
-            //// Jos duplikaatti
+            // Jos duplikaatti
             tietokantaoperaatiot.paivita_duplikaatit();
 
-            //// Jos yhteisjulkaisu
+            // Jos yhteisjulkaisu
             tietokantaoperaatiot.luo_yhteisjulkaisut();
             tietokantaoperaatiot.paivita_yhteisjulkaisut();
 

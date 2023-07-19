@@ -18,6 +18,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             cmd.CommandTimeout = 180;
             cmd.Connection = conn;
         }
+        
         public void Avaa()
         {
             conn.Open();
