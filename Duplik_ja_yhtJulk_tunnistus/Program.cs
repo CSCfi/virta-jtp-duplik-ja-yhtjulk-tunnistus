@@ -156,9 +156,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 Ehto 10 (Tunnistussääntö 6): Julkaisutyyppi + julkaisun nimi + lehden nimi + julkaisuvuosi(koskee julkaisutyyppeja D1)
                 Ehto 11 (Tunnistussääntö 7): Julkaisutyyppi + julkaisun nimi + kustantajan nimi + julkaisuvuosi(koskee julkaisutyyppeja D4)
 
-                Rajoitteet:
-                Tunnistussäännöt 1 - 7
+                
+                RAJOITTEET
+                Tunnistussäännöt 1 - 5
                     - julkaisut_ods.dbo.EiYhteisjulkaisuJulkaisutyyppiparit
+                Tunnistussäännöt 1 - 7
                     - julkaisut_ods.dbo.EiDuplikaattiTarkistusta
                 Tunnistussäännöt 2 - 5
                     - DOIt eivät saa olla erisuuria
