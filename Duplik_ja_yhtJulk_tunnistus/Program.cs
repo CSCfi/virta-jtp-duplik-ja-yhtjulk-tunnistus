@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Text;
-using System.Windows.Forms;
 
 namespace Duplik_ja_yhtJulk_tunnistus
 {
@@ -44,7 +42,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
             Globals.tilaKoodi_sisainen_duplikaatti = 0;
             Globals.tarkistusID_sisainen_duplikaatti = tietokantaoperaatiot.hae_tarkistusID("sis_dupli");
             Globals.tarkistusID_yhteisjulkaisu = tietokantaoperaatiot.hae_tarkistusID("sis_yhtj");
-
 
 
 
@@ -181,8 +178,12 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             tietokantaoperaatiot.uudelleenjarjesta_indeksit("julkaisut_mds.koodi.julkaisuntunnus");
 
-            // Silmukka, jossa etsitään potentiaalinen duplikaatti/yhteisjulkaisu ja katsotaan täyttääkö se ehdot.
-            // Jos ehdokas ei täytä ehtoja niin julkaisu on mukana seuraavalla kierroksella.
+
+            /* 
+                Silmukka, jossa julkaisuille etsitään potentiaalinen duplikaatti/yhteisjulkaisu ja katsotaan täyttääkö ehdokas yllä olevat ehdot.
+                Jos ehdokas ei täytä ehtoja niin julkaisu on mukana seuraavalla kierroksella.
+            */
+
             int ehdot_lkm = 11;
             for (int i = 1; i <= ehdot_lkm; i++)
             {
