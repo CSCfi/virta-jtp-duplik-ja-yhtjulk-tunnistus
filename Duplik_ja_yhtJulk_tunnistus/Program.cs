@@ -118,7 +118,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Kirjoitus TMP-tauluun
             tietokantaoperaatiot.kirjoita_datataulu_tietokantaan(dt2, taulu1);
 
-            // Kirjoitus myös ODS_JulkaisutTMP-tauluun tulevia vertailuja varten. Indeksien disablointi ennen kirjoitusta.
+            // Kirjoitus myös ODS_JulkaisutTMP-tauluun tulevia vertailuja varten. Indeksien kytkeminen pois päältä ennen kirjoitusta.
             string[] estettava_taulu = taulu2.Split('.');
             tietokantaoperaatiot.esta_indeksit(estettava_taulu[0], estettava_taulu[1], estettava_taulu[2]);
             tietokantaoperaatiot.kirjoita_datataulu_tietokantaan(dt2, taulu2);
