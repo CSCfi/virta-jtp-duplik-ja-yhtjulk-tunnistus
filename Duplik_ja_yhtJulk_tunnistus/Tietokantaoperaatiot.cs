@@ -199,6 +199,15 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
+        public void esta_indeksit(string kanta, string skeema, string taulu)
+        {
+            SqlConn.Avaa();
+            SqlConn.cmd.CommandText = "exec " + kanta + ".dbo.disable_non_clustered_indexes " + skeema + "," + taulu;
+            SqlConn.cmd.ExecuteNonQuery();
+            SqlConn.Sulje();
+        }
+
+
         public void paivita_ISSN_ja_ISBN_tunnukset(string taulu)
         {
             SqlConn.Avaa();
