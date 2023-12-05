@@ -135,7 +135,8 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         ,t1.LehdenNumeroTeksti
                         ,t1.SivunumeroTeksti
                         ,t1.Lataus_ID
-                        ,t1.JulkaisunTilaKoodi " 
+                        ,t1.JulkaisunTilaKoodi
+                        ,t1.AVSovellusTyyppiKoodi"
                     + taulu;
             SqlConn.cmd.CommandText = kysely;
             SqlConn.cmd.Parameters.AddWithValue("@min_vuosi", Globals.min_vuosi);
@@ -160,6 +161,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 // Sarakkeiden mappaus datataulun ja tietokantataulun välillä
                 foreach (DataColumn column in dt.Columns)
                 {
+                    // tätä voi käyttää debuggaukseen (K:\APP\log\stdout.txt), jos tulee virhettä (K:\APP\log\sterror.txt)
+                    // ettei uuden sarakkeen jälkeen mappaus onnistu ja bulkCopy antaa virheen 
+                    // Console.WriteLine($"Mapping: {column.ColumnName} -> {taulu}.{column.ColumnName}");
                     bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
                 }
 
@@ -555,6 +559,50 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 SqlConn.cmd.ExecuteNonQuery();
             }
 
+            else if (ehto == 12)
+            {
+                // Tunnistussääntö 8:   
+                SqlConn.cmd.CommandText = @"
+                WITH t1 AS
+                (
+                    SELECT " +
+                        with_columns +
+                    @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
+                    INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.JulkaisutyyppiKoodi = t1.JulkaisutyyppiKoodi AND t2.JulkaisunNimi = t1.JulkaisunNimi AND t2.AVsovellustyyppikoodi = t1.AVsovellustyyppikoodi AND t2.Julkaisuvuosi = t1.Julkaisuvuosi AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus 
+                    WHERE " + with_where +
+                    @"and t1.JulkaisutyyppiKoodi in ('I1', 'I2') 
+                    and t2.JulkaisutyyppiKoodi  in ('I1', 'I2') 
+                )
+                UPDATE t1
+                SET " +
+                update_columns +
+                "WHERE " + update_where;
+
+                SqlConn.cmd.ExecuteNonQuery();
+            }
+            
+            else if (ehto == 13)
+            {
+                // Tunnistussääntö 9:       
+                SqlConn.cmd.CommandText = @"
+                WITH t1 AS
+                (
+                    SELECT " +
+                        with_columns +
+                    @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
+                    INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.JulkaisutyyppiKoodi = t1.JulkaisutyyppiKoodi AND t2.JulkaisunNimi = t1.JulkaisunNimi  AND t2.Julkaisuvuosi = t1.Julkaisuvuosi AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus 
+                    WHERE " + with_where +
+                    @"and t1.JulkaisutyyppiKoodi IN ('KA', 'KP')
+                    and t2.JulkaisutyyppiKoodi IN ('KA', 'KP')
+                )
+                UPDATE t1
+                SET " +
+                update_columns +
+                "WHERE " + update_where;
+
+                SqlConn.cmd.ExecuteNonQuery();
+            }
+
             SqlConn.Sulje();
         }
 
@@ -573,7 +621,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 WHERE t1.dupl_yhtjulk_ehto = @ehto
                 and t1.OrganisaatioTunnus = t1.dupl_OrganisaatioTunnus
                 and t1.JulkaisunOrgTunnus != t1.dupl_JulkaisunOrgTunnus
-                and t2.Yhteisjulkaisu_ID = 0";
+                and t2.Yhteisjulkaisu_ID = 0
+                -- CSCVIRTAJTP-211
+                and NOT ((t1.JulkaisunTilaKoodi = 3 AND (t1.JulkaisutyyppiKoodi = 'KA' OR t1.JulkaisutyyppiKoodi = 'KP')))";
             SqlConn.cmd.ExecuteNonQuery();
 
             // 2 Duplikaatti kuuluu yhteisjulkaisuun ja julkaisun organisaatio on mukana siinä
@@ -589,7 +639,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 INNER JOIN julkaisut_mds.koodi.JulkaisunTunnus t2 ON t2.JulkaisunTunnus = t1.dupl_JulkaisunTunnus
                 INNER JOIN julkaisut_mds.koodi.julkaisuntunnus t3 ON t3.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID and t3.OrgTunnus = t1.OrganisaatioTunnus and t3.JulkaisunOrgTunnus != t1.JulkaisunOrgTunnus
                 WHERE t1.dupl_yhtjulk_ehto = @ehto
-                and t2.Yhteisjulkaisu_ID != 0";
+                and t2.Yhteisjulkaisu_ID != 0
+                -- CSCVIRTAJTP-211
+                and  NOT ((t1.JulkaisunTilaKoodi = 3 AND (t1.JulkaisutyyppiKoodi = 'KA' OR t1.JulkaisutyyppiKoodi = 'KP')))";
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
@@ -641,7 +693,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 SET t1.JulkaisunTilaKoodi = @JulkaisunTilaKoodi
                 FROM julkaisut_ods.dbo.SA_Julkaisut t1
                 INNER JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t2 ON t2.JulkaisunTunnus = t1.JulkaisunTunnus
-                WHERE t2.dupl_yhtjulk = 'dupl'";
+                 --#RT660639 
+                LEFT JOIN julkaisut_ods.dbo.EiDuplikaattiTarkistusta t3 ON 
+                    (t3.ekajulkorgtunnus=t2.JulkaisunOrgTunnus AND t3.tokajulkorgtunnus = t2.dupl_JulkaisunOrgTunnus) OR
+                    (t3.tokajulkorgtunnus=t2.JulkaisunOrgTunnus AND t3.ekajulkorgtunnus = t2.dupl_JulkaisunOrgTunnus)
+                WHERE t2.dupl_yhtjulk = 'dupl' AND t3.ID IS NULL";
             SqlConn.cmd.ExecuteNonQuery();
             SqlConn.Sulje();
         }
@@ -709,15 +765,19 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.cmd.CommandText = @"
                 INSERT INTO julkaisut_ods.dbo.Tarkistusloki (JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, LatausID, TarkistusID, Tila, Kuvaus)
                 SELECT
-	                JulkaisunTunnus
-	                ,JulkaisunOrgTunnus
-	                ,OrganisaatioTunnus
-	                ,Lataus_ID
+	                t1.JulkaisunTunnus
+	                ,t1.JulkaisunOrgTunnus
+	                ,t1.OrganisaatioTunnus
+	                ,t1.Lataus_ID
 	                ,@tarkistusId_dupl
 	                ,@tilaKoodiDupl
 	                ,dupl_JulkaisunOrgTunnus
-                FROM julkaisut_ods.dbo.SA_JulkaisutTMP 
-                WHERE dupl_yhtjulk = 'dupl'";
+                FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
+                --#RT660639 
+                LEFT JOIN julkaisut_ods.dbo.EiDuplikaattiTarkistusta t2 ON 
+                    (t2.ekajulkorgtunnus=t1.JulkaisunOrgTunnus AND t2.tokajulkorgtunnus = t1.dupl_JulkaisunOrgTunnus) OR
+                    (t2.tokajulkorgtunnus=t1.JulkaisunOrgTunnus AND t2.ekajulkorgtunnus = t1.dupl_JulkaisunOrgTunnus)
+                WHERE dupl_yhtjulk = 'dupl' AND t2.ID IS NULL";
             SqlConn.cmd.ExecuteNonQuery();
 
             // Yhteisjulkaisu

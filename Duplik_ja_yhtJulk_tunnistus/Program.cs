@@ -93,7 +93,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 row["KustantajanNimi"] = apufunktiot.muokkaa_nimea(row["KustantajanNimi"].ToString());
                 row["EmojulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["EmojulkaisunNimi"].ToString());
                 row["Lehdennimi"] = apufunktiot.muokkaa_nimea(row["Lehdennimi"].ToString());
-                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());
+                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());             
             }
             
             tietokantaoperaatiot.kirjoita_datataulu_tietokantaan(dt1, taulu2);           
@@ -152,14 +152,17 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 (Ehto 5: ISSN2 + volyymi + numero + julkaisun nimi)
 
                 Ehto 6 (Tunnistussääntö 3): julkaisutyyppi + kustantaja + julkaisun nimi(koskee julkaisutyyppeja C1, D5, E1, E2 pl.Introduction, Esipuhe, Johdanto)
-                Ehto 7 (Tunnistussääntö 4): emojulkaisun nimi +julkaisun nimi(koskee julkaisutyyppeja A3, A4, B2, B3, D1, D2, D3, E1, pl.Introduction, Esipuhe, Johdanto)
+                Ehto 7 (Tunnistussääntö 4): emojulkaisun nimi +julkaisun nimi (koskee julkaisutyyppeja A3, A4, B2, B3, D1, D2, D3, E1, pl.Introduction, Esipuhe, Johdanto)
                 Ehto 8 (Tunnistussääntö 5 v1): ISBN1 + julkaisun nimi
                 Ehto 9 (Tunnistussääntö 5 v2): ISBN2 + julkaisun nimi
 
                 2 / 2022
-                Ehto 10 (Tunnistussääntö 6): Julkaisutyyppi + julkaisun nimi + lehden nimi + julkaisuvuosi(koskee julkaisutyyppeja D1)
-                Ehto 11 (Tunnistussääntö 7): Julkaisutyyppi + julkaisun nimi + kustantajan nimi + julkaisuvuosi(koskee julkaisutyyppeja D4)
+                Ehto 10 (Tunnistussääntö 6): Julkaisutyyppi + julkaisun nimi + lehden nimi + julkaisuvuosi (koskee julkaisutyyppeja D1)
+                Ehto 11 (Tunnistussääntö 7): Julkaisutyyppi + julkaisun nimi + kustantajan nimi + julkaisuvuosi (koskee julkaisutyyppeja D4)
 
+                11 / 2023
+                Ehto 12 (Tunnistussääntö 8): Julkaisutyyppi + julkaisun nimi + julkaisuvuosi + AVsovellustyyppiKoodi (Koskee julkaisutyyppejä I1, I2)
+                Ehto 13 (Tunnistussääntö 9): Julkaisutyyppi (ainoastaan Virran sisäisessä käytössä) + julkaisun nimi + julkaisuvuosi (Koskee julkaisuita joiden muotokoodi on posteri tai abstrakti)
                 
                 RAJOITTEET
                 Tunnistussäännöt 1 - 5
@@ -191,7 +194,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 Jos ehdokas ei täytä ehtoja niin julkaisu on mukana seuraavalla kierroksella.
             */
 
-            int ehdot_lkm = 11;
+            int ehdot_lkm = 13;
             for (int i = 1; i <= ehdot_lkm; i++)
             {
                 if (i == 4 || i == 5) { continue; }
