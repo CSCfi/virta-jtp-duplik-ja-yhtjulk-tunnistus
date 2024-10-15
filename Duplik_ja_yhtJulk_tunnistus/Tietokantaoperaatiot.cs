@@ -46,7 +46,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public int hae_tarkistusID(string koodi)
+        public int Hae_tarkistusID(string koodi)
         {
             SqlConn.Avaa();
             SqlConn.cmd.CommandText = "SELECT TarkistusID FROM Julkaisut_ods.dbo.Tarkistukset WHERE Koodi = @koodi";           
@@ -60,7 +60,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void poista_poistetetut_julkaisut()
+        public void Poista_poistetetut_julkaisut()
         {
             SqlConn.Avaa();
 
@@ -86,7 +86,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void tyhjenna_taulu(string table)
+        public void Tyhjenna_taulu(string table)
         {
             SqlConn.Avaa();
             SqlConn.cmd.CommandText = "TRUNCATE TABLE " + table;
@@ -95,7 +95,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
                
 
-        public DataTable lue_tietokantataulu_datatauluun(String ymp)
+        public DataTable Lue_tietokantataulu_datatauluun(String ymp)
         {
             string taulu = "";
             if (ymp.ToLower() == "sa")
@@ -152,7 +152,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void kirjoita_datataulu_tietokantaan(DataTable dt, String taulu)
+        public void Kirjoita_datataulu_tietokantaan(DataTable dt, String taulu)
         {
             SqlConn.Avaa();
 
@@ -185,7 +185,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
         
-        public void uudelleenjarjesta_indeksit(string taulu)
+        public void Uudelleenjarjesta_indeksit(string taulu)
         {
             SqlConn.Avaa();         
             SqlConn.cmd.CommandText = "ALTER INDEX ALL ON " + taulu + " REORGANIZE";
@@ -194,7 +194,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void uudelleenrakenna_indeksit(string taulu)
+        public void Uudelleenrakenna_indeksit(string taulu)
         {
             SqlConn.Avaa();
             SqlConn.cmd.CommandText = "ALTER INDEX ALL ON " + taulu + " REBUILD";
@@ -203,7 +203,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void esta_indeksit(string kanta, string skeema, string taulu)
+        public void Esta_indeksit(string kanta, string skeema, string taulu)
         {
             SqlConn.Avaa();
             SqlConn.cmd.CommandText = "exec " + kanta + ".dbo.disable_non_clustered_indexes " + skeema + "," + taulu;
@@ -212,7 +212,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void paivita_ISSN_ja_ISBN_tunnukset(string taulu)
+        public void Paivita_ISSN_ja_ISBN_tunnukset(string taulu)
         {
             SqlConn.Avaa();
 
@@ -268,7 +268,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void etsi_yhteisjulkaisut(int ehto)
+        public void Etsi_yhteisjulkaisut(int ehto)
         {
             SqlConn.Avaa();
 
@@ -334,14 +334,15 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         or (edt.ekajulkorgtunnus = t2.JulkaisunOrgTunnus and edt.tokajulkorgtunnus = t1.JulkaisunOrgTunnus)
                     )
                 ) ";
+
             // Tämä ei enää käytössä
-            string where_1_7_3 = @" 
-                and not exists (
-                    select id 
-                    from julkaisut_ods.dbo.EiYhteisjulkaisuTarkistusta eyt 
-                    where (eyt.ekajulkaisuntunnus = t1.JulkaisunTunnus and eyt.tokajulkaisuntunnus = t2.JulkaisunTunnus) 
-                    or (eyt.ekajulkaisuntunnus = t2.JulkaisunTunnus and eyt.tokajulkaisuntunnus = t1.JulkaisunTunnus)
-                ) ";
+            //string where_1_7_3 = @" 
+            //    and not exists (
+            //        select id 
+            //        from julkaisut_ods.dbo.EiYhteisjulkaisuTarkistusta eyt 
+            //        where (eyt.ekajulkaisuntunnus = t1.JulkaisunTunnus and eyt.tokajulkaisuntunnus = t2.JulkaisunTunnus) 
+            //        or (eyt.ekajulkaisuntunnus = t2.JulkaisunTunnus and eyt.tokajulkaisuntunnus = t1.JulkaisunTunnus)
+            //    ) ";
 
             string with_where = where_1_7_1 + where_1_7_2 + where_1_5 + where_2_5;
 
@@ -607,7 +608,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void liputa_duplikaatit(int ehto)
+        public void Liputa_duplikaatit(int ehto)
         {
             SqlConn.Avaa();
             SqlConn.cmd.Parameters.AddWithValue("@ehto", ehto);
@@ -641,14 +642,14 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 WHERE t1.dupl_yhtjulk_ehto = @ehto
                 and t2.Yhteisjulkaisu_ID != 0
                 -- CSCVIRTAJTP-211
-                and  NOT ((t1.JulkaisunTilaKoodi = 3 AND (t1.JulkaisutyyppiKoodi = 'KA' OR t1.JulkaisutyyppiKoodi = 'KP')))";
+                and NOT ((t1.JulkaisunTilaKoodi = 3 AND (t1.JulkaisutyyppiKoodi = 'KA' OR t1.JulkaisutyyppiKoodi = 'KP')))";
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
         }
 
 
-        public void liputa_yhteisjulkaisut(int ehto)
+        public void Liputa_yhteisjulkaisut(int ehto)
         {
             SqlConn.Avaa();                     
             SqlConn.cmd.Parameters.AddWithValue("@ehto", ehto);
@@ -682,7 +683,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void paivita_duplikaatit()
+        public void Paivita_duplikaatit()
         {
             SqlConn.Avaa();
             SqlConn.cmd.Parameters.AddWithValue("@JulkaisunTilaKoodi", Globals.tilaKoodi_sisainen_duplikaatti);
@@ -703,29 +704,34 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void luo_yhteisjulkaisut()
+        public void Luo_yhteisjulkaisut()
         {
             SqlConn.Avaa();
 
             // Uusien Yhteisjulkaisu_ID:eiden generointi
             SqlConn.cmd.CommandText = @"
-                UPDATE x
-                SET x.Yhteisjulkaisu_ID = cj.max_id + x.rn
-                FROM (
-	                SELECT
-		                Yhteisjulkaisu_ID
-		                ,rn = ROW_NUMBER () OVER (ORDER BY julkaisuntunnus)
-	                FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
-	                WHERE t1.dupl_yhtjulk = 'yhtjulk' and t1.Yhteisjulkaisu_ID is null
-                ) x
-                CROSS JOIN (SELECT MAX(Yhteisjulkaisu_ID) as max_id FROM julkaisut_mds.koodi.JulkaisunTunnus) cj";
+                WITH MaxYhteisjulkaisu_ID AS (
+                    SELECT MAX(Yhteisjulkaisu_ID) as max_id
+                    FROM julkaisut_mds.koodi.JulkaisunTunnus
+                ),
+                RankedRows AS (
+                    SELECT 
+                        Yhteisjulkaisu_ID,
+                        ROW_NUMBER() OVER (ORDER BY julkaisuntunnus) AS rn
+                    FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
+                    WHERE t1.dupl_yhtjulk = 'yhtjulk' 
+                      AND t1.Yhteisjulkaisu_ID IS NULL
+                )
+                UPDATE RankedRows
+                SET Yhteisjulkaisu_ID = (SELECT max_id FROM MaxYhteisjulkaisu_ID) + rn;
+                ";
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
         }
 
 
-        public void paivita_yhteisjulkaisut()
+        public void Paivita_yhteisjulkaisut()
         {
             SqlConn.Avaa();                 
 
@@ -753,7 +759,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         }
 
 
-        public void kirjoita_tarkistuslokiin()
+        public void Kirjoita_tarkistuslokiin()
         {
             SqlConn.Avaa();
 
@@ -763,7 +769,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             // Duplikaatit
             SqlConn.cmd.CommandText = @"
-                INSERT INTO julkaisut_ods.dbo.Tarkistusloki (JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, LatausID, TarkistusID, Tila, Kuvaus)
+                INSERT INTO julkaisut_ods.dbo.Tarkistusloki (JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, LatausID, TarkistusID, Tila, Kuvaus, Lisatieto)
                 SELECT
 	                t1.JulkaisunTunnus
 	                ,t1.JulkaisunOrgTunnus
@@ -772,6 +778,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 	                ,@tarkistusId_dupl
 	                ,@tilaKoodiDupl
 	                ,dupl_JulkaisunOrgTunnus
+                    ,dupl_yhtjulk_ehto
                 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
                 --#RT660639 
                 LEFT JOIN julkaisut_ods.dbo.EiDuplikaattiTarkistusta t2 ON 
@@ -782,7 +789,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             // Yhteisjulkaisu
             SqlConn.cmd.CommandText = @"
-                INSERT INTO julkaisut_ods.dbo.Tarkistusloki (JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, LatausID, TarkistusID, Tila, Kuvaus)
+                INSERT INTO julkaisut_ods.dbo.Tarkistusloki (JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, LatausID, TarkistusID, Tila, Kuvaus, Lisatieto)
                 SELECT
 	                JulkaisunTunnus
 	                ,JulkaisunOrgTunnus
@@ -791,6 +798,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 	                ,@tarkistusId_yhtjulk
 	                ,JulkaisunTilaKoodi
 	                ,Yhteisjulkaisu_ID
+                    ,dupl_yhtjulk_ehto
                 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
                 WHERE dupl_yhtjulk = 'yhtjulk'";
             SqlConn.cmd.ExecuteNonQuery();
