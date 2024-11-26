@@ -4,7 +4,7 @@ using System.Data;
 
 namespace Duplik_ja_yhtJulk_tunnistus
 {
-    
+
     class SqlCon
     {
         public SqlConnection conn;
@@ -18,7 +18,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             cmd.CommandTimeout = 180;
             cmd.Connection = conn;
         }
-        
+
         public void Avaa()
         {
             conn.Open();
@@ -49,7 +49,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
         public int Hae_tarkistusID(string koodi)
         {
             SqlConn.Avaa();
-            SqlConn.cmd.CommandText = "SELECT TarkistusID FROM Julkaisut_ods.dbo.Tarkistukset WHERE Koodi = @koodi";           
+            SqlConn.cmd.CommandText = "SELECT TarkistusID FROM Julkaisut_ods.dbo.Tarkistukset WHERE Koodi = @koodi";
             SqlConn.cmd.Parameters.AddWithValue("@koodi", koodi);
 
             int id = (int)Int32.Parse(SqlConn.cmd.ExecuteScalar().ToString());
@@ -67,19 +67,19 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Tilakoodi tyhjä
             SqlConn.cmd.CommandText = @"
                 DELETE o FROM [julkaisut_ods].[dbo].[ODS_JulkaisutTMP] o
-                WHERE NOT EXISTS (select JulkaisunTunnus from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus) OR o.JulkaisunTilaKoodi is null";
+                WHERE NOT EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus) OR o.JulkaisunTilaKoodi is null";
             SqlConn.cmd.ExecuteNonQuery();
 
             // Poistetut
             SqlConn.cmd.CommandText = @"
                 DELETE o FROM [julkaisut_ods].[dbo].[ODS_JulkaisutTMP] o
-                WHERE EXISTS (select JulkaisunTunnus from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus and JulkaisunTilaKoodi = -1)";
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus and JulkaisunTilaKoodi = -1)";
             SqlConn.cmd.ExecuteNonQuery();
 
             // SA-taulussa olevat
             SqlConn.cmd.CommandText = @"
                 DELETE o FROM [julkaisut_ods].[dbo].[ODS_JulkaisutTMP] o
-                WHERE EXISTS (select JulkaisunTunnus from julkaisut_ods.dbo.SA_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus)";
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus)";
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
@@ -93,7 +93,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.cmd.ExecuteNonQuery();
             SqlConn.Sulje();
         }
-               
+
 
         public DataTable Lue_tietokantataulu_datatauluun(String ymp)
         {
@@ -138,6 +138,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         ,t1.JulkaisunTilaKoodi
                         ,t1.AVSovellusTyyppiKoodi"
                     + taulu;
+
             SqlConn.cmd.CommandText = kysely;
             SqlConn.cmd.Parameters.AddWithValue("@min_vuosi", Globals.min_vuosi);
             SqlConn.cmd.Parameters.AddWithValue("@tilaKoodi", Globals.tilaKoodi_vertailtava_julkaisu);
@@ -181,13 +182,13 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 }
             }
 
-            SqlConn.Sulje();          
+            SqlConn.Sulje();
         }
 
-        
+
         public void Uudelleenjarjesta_indeksit(string taulu)
         {
-            SqlConn.Avaa();         
+            SqlConn.Avaa();
             SqlConn.cmd.CommandText = "ALTER INDEX ALL ON " + taulu + " REORGANIZE";
             SqlConn.cmd.ExecuteNonQuery();
             SqlConn.Sulje();
@@ -288,7 +289,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 ,t2.JulkaisutyyppiKoodi
                 ,t2.JulkaisunNimi
                 ,t2.DOI
-                ,rn = row_number() over(partition by t1.JulkaisunTunnus order by t2." + sort_column + " desc) ";
+                ,rn = ROW_NUMBER() OVER (PARTITION BY t1.julkaisuntunnus ORDER BY (CASE WHEN EXISTS(SELECT 1 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t3 WHERE t3.JulkaisunTunnus = t2.JulkaisunTunnus) THEN 1 ELSE 0 END), t2." + sort_column + " desc )";
 
             string update_columns = @"
                 t1.dupl_JulkaisunTunnus = JulkaisunTunnus
@@ -308,7 +309,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             {
                 where_1_5 = @"
                     and not exists (
-                        select JulkaisuTyyppi1
+                        select 1
                         from julkaisut_ods.dbo.EiYhteisjulkaisuJulkaisutyyppiparit edjtp 
                         where (edjtp.JulkaisuTyyppi1 = t1.JulkaisutyyppiKoodi and edjtp.JulkaisuTyyppi2 = t2.JulkaisutyyppiKoodi) 
                         or (edjtp.JulkaisuTyyppi1 = t2.JulkaisutyyppiKoodi and edjtp.JulkaisuTyyppi2 = t1.JulkaisutyyppiKoodi)
@@ -326,7 +327,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             string where_1_7_2 = @" 
                 and not exists (
-                    select id 
+                    select 1 
                     from julkaisut_ods.dbo.EiDuplikaattiTarkistusta edt 
                     where edt.organisaatiotunnus = t1.OrganisaatioTunnus 
                     and (
@@ -372,14 +373,14 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             else if (ehto == 2)
             {
-                // Tunnistussääntö 2 v.1 :
+                // Tunnistussääntö 2 v.1:
                 SqlConn.cmd.CommandText = @"
                 SELECT
 		            i.ISSN,i.JulkaisunTunnus,t.JulkaisunNimi,t.SivunumeroTeksti,t.VolyymiTeksti,t.LehdenNumeroTeksti,t.JulkaisutyyppiKoodi,t.JulkaisunOrgTunnus,t.JulkaisunTilaKoodi,t.DOI,t.OrganisaatioTunnus
                 INTO #temp
                 FROM julkaisut_ods.dbo.ODS_ISSN i	
                 INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t on t.JulkaisunTunnus=i.JulkaisunTunnus
-                WHERE EXISTS (select JulkaisunTunnus from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN1 = i.ISSN)
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN1 = i.ISSN)
 
                 ;WITH t1 AS
                 (
@@ -408,7 +409,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 INTO #temp
                 FROM julkaisut_ods.dbo.ODS_ISSN i	
                 INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t on t.JulkaisunTunnus=i.JulkaisunTunnus
-                WHERE EXISTS (select JulkaisunTunnus from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN2 = i.ISSN)
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN2 = i.ISSN)
 
                 ;WITH t1 AS
                 (
@@ -437,7 +438,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     SELECT " +
                         with_columns +
                     @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
-                    INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.JulkaisutyyppiKoodi = t1.JulkaisutyyppiKoodi AND t2.JulkaisunNimi = t1.JulkaisunNimi AND t2.KustantajanNimi = t1.KustantajanNimi AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus
+                    INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON 
+                        t2.JulkaisutyyppiKoodi = t1.JulkaisutyyppiKoodi 
+                        AND t2.JulkaisunNimi = t1.JulkaisunNimi 
+                        AND t2.KustantajanNimi = t1.KustantajanNimi 
+                        AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and t1.JulkaisutyyppiKoodi IN ('C1','D5','E1','E2')
                     and t2.JulkaisutyyppiKoodi IN ('C1','D5','E1','E2')
@@ -581,7 +586,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
                 SqlConn.cmd.ExecuteNonQuery();
             }
-            
+
             else if (ehto == 13)
             {
                 // Tunnistussääntö 9:       
@@ -651,7 +656,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
         public void Liputa_yhteisjulkaisut(int ehto)
         {
-            SqlConn.Avaa();                     
+            SqlConn.Avaa();
             SqlConn.cmd.Parameters.AddWithValue("@ehto", ehto);
 
             // 1 Duplikaatti ei kuulu yhteisjulkaisuun
@@ -709,22 +714,46 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.Avaa();
 
             // Uusien Yhteisjulkaisu_ID:eiden generointi
+            // Otetaan huomioon mahdollisuus että samassa satsissa on enemmän kuin yksi samaan yhteisjulkaisuun kuuluva osajulkaisu
             SqlConn.cmd.CommandText = @"
-                WITH MaxYhteisjulkaisu_ID AS (
+                WITH 
+                FilteredRows AS (
+	                SELECT 
+		                 julkaisuntunnus
+		                ,dupl_JulkaisunTunnus
+		                ,Yhteisjulkaisu_ID
+		                ,ROW_NUMBER() OVER (ORDER BY julkaisuntunnus DESC) as rn_julkaisuntunnus
+                    FROM [julkaisut_ods].[dbo].[SA_JulkaisutTMP]
+	                WHERE dupl_yhtjulk = 'yhtjulk' and Yhteisjulkaisu_ID is null
+                )
+                ,JoinedRows AS (
+	                SELECT
+		                R1.julkaisuntunnus
+		                ,CASE
+			                WHEN R1.rn_julkaisuntunnus > R2.rn_julkaisuntunnus THEN R1.dupl_JulkaisunTunnus
+			                ELSE COALESCE(R2.dupl_JulkaisunTunnus, R1.dupl_JulkaisunTunnus) 
+		                END AS dupl_JulkaisunTunnus
+	                FROM FilteredRows R1
+	                LEFT JOIN FilteredRows R2 ON R2.julkaisuntunnus = R1.dupl_JulkaisunTunnus
+                )
+                ,OrderedRows AS (
+	                SELECT 
+		                julkaisuntunnus
+		                ,dupl_JulkaisunTunnus
+		                ,DENSE_RANK() OVER (ORDER BY dupl_JulkaisunTunnus) AS rn_dupl_JulkaisunTunnus
+	                FROM JoinedRows
+                )
+                ,MaxYhteisjulkaisu_ID AS (
                     SELECT MAX(Yhteisjulkaisu_ID) as max_id
                     FROM julkaisut_mds.koodi.JulkaisunTunnus
-                ),
-                RankedRows AS (
-                    SELECT 
-                        Yhteisjulkaisu_ID,
-                        ROW_NUMBER() OVER (ORDER BY julkaisuntunnus) AS rn
-                    FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
-                    WHERE t1.dupl_yhtjulk = 'yhtjulk' 
-                      AND t1.Yhteisjulkaisu_ID IS NULL
                 )
-                UPDATE RankedRows
-                SET Yhteisjulkaisu_ID = (SELECT max_id FROM MaxYhteisjulkaisu_ID) + rn;
-                ";
+
+                UPDATE R1
+                SET Yhteisjulkaisu_ID = max_id + R2.rn_dupl_JulkaisunTunnus
+                FROM FilteredRows R1
+                INNER JOIN OrderedRows R2 ON R2.julkaisuntunnus = R1.julkaisuntunnus
+                CROSS JOIN MaxYhteisjulkaisu_ID";
+
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
@@ -733,7 +762,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
         public void Paivita_yhteisjulkaisut()
         {
-            SqlConn.Avaa();                 
+            SqlConn.Avaa();
 
             // Yhteisjulkaisu_ID:n päivitys
             SqlConn.cmd.CommandText = @"
@@ -805,7 +834,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             SqlConn.Sulje();
         }
-       
+
 
     }
 

@@ -3,15 +3,15 @@ using System.Data;
 
 namespace Duplik_ja_yhtJulk_tunnistus
 {
-    
+
     static class Globals
-    {    
+    {
         public static int min_vuosi;
         public static int tilaKoodi_vertailtava_julkaisu;
         public static int tilaKoodi_sisainen_duplikaatti;
         public static int tarkistusID_sisainen_duplikaatti;
         public static int tarkistusID_yhteisjulkaisu;
-    }    
+    }
 
     class Program
     {
@@ -23,7 +23,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Ajastin joka mittaa kuinka kauan koodin ajo kestaa 
             // var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            bool debug = false;
+            bool debug = true;
 
 
             if (!debug && args.Length != 1)
@@ -42,7 +42,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             {
                 server = args[0];
             }
-            
+
             string ConnString = "Server=" + server + ";Trusted_Connection=true";
 
             // Täällä ovat tarvittavat apufunktiot ja tietokantaoperaatiot
@@ -106,10 +106,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 row["KustantajanNimi"] = apufunktiot.muokkaa_nimea(row["KustantajanNimi"].ToString());
                 row["EmojulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["EmojulkaisunNimi"].ToString());
                 row["Lehdennimi"] = apufunktiot.muokkaa_nimea(row["Lehdennimi"].ToString());
-                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());             
+                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());
             }
-            
-            tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt1, taulu2);           
+
+            tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt1, taulu2);
 
 
             //// SA
@@ -120,18 +120,19 @@ namespace Duplik_ja_yhtJulk_tunnistus
             DataTable dt2 = tietokantaoperaatiot.Lue_tietokantataulu_datatauluun("SA");
 
             foreach (DataRow row in dt2.Rows)
-            {               
+            {
                 row["JulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["JulkaisunNimi"].ToString());
                 row["KustantajanNimi"] = apufunktiot.muokkaa_nimea(row["KustantajanNimi"].ToString());
                 row["EmojulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["EmojulkaisunNimi"].ToString());
                 row["Lehdennimi"] = apufunktiot.muokkaa_nimea(row["Lehdennimi"].ToString());
-                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());        
+                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());
             }
 
             // Kirjoitus TMP-tauluun
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt2, taulu1);
 
-            // Kirjoitus myös ODS_JulkaisutTMP-tauluun tulevia vertailuja varten. Indeksien kytkeminen pois päältä ennen kirjoitusta.
+            // Kirjoitus myös ODS_JulkaisutTMP-tauluun jotta voidaan havaita samassa satsissa tulevat duplikaatit ja yhteisjulkaisut
+            // Indeksien kytkeminen pois päältä ennen kirjoitusta
             string[] estettava_taulu = taulu2.Split('.');
             tietokantaoperaatiot.Esta_indeksit(estettava_taulu[0], estettava_taulu[1], estettava_taulu[2]);
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt2, taulu2);
@@ -251,9 +252,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
 
-            // ----------------------------------------------------------------------------------------------------
+        // ----------------------------------------------------------------------------------------------------
 
-            loppu:
+        loppu:
 
             //Console.Write("Loppu");
             //Console.ReadLine();
