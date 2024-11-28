@@ -14,10 +14,12 @@ namespace Duplik_ja_yhtJulk_tunnistus
         public SqlCon(string connString)
         {
             conn = new SqlConnection(connString);
-            cmd = new SqlCommand();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandTimeout = 180;
-            cmd.Connection = conn;
+            cmd = new SqlCommand
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = 360,
+                Connection = conn
+            };
         }
 
         public void Avaa()
@@ -275,6 +277,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.Avaa();
 
             // Duplikaatin/yhteisjulkaisun etsinnässä priorisoidaan julkaisuja, jotka eivät ole SA_julkaisutTMP-taulussa eli samassa satsissa (ks. row_number)
+            // Tällä tavalla samassa Justus-siirrossa tulevat yhteisjulkaisun osajulkaisut tunnistetaan oikein
             string with_columns = @"
                 t1.dupl_JulkaisunTunnus
                 ,t1.dupl_JulkaisunOrgTunnus
@@ -622,6 +625,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 "WHERE " + update_where;
 
             }
+
             //Debug.WriteLine(ehto + "\n" + SqlConn.cmd.CommandText);
             SqlConn.cmd.ExecuteNonQuery();
 
