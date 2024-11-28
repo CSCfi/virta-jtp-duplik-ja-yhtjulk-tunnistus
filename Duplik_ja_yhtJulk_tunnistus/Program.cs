@@ -24,7 +24,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Ajastin joka mittaa kuinka kauan koodin ajo kestaa 
             //var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            bool debug = true;
+            bool debug = false;
 
 
             if (!debug && args.Length != 1)
