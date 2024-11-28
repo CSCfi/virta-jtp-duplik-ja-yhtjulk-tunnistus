@@ -52,7 +52,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             // Globaalit muuttujat
             Globals.min_vuosi = 2015; // Tarkistus ja vertailu vain niille julkaisuille, joille julkaisuvuosi >= min_vuosi.
-            Globals.tilaKoodi_vertailtava_julkaisu = 1; // ODS_Julkaisut-taulun vertailtavan julkaisun tilaKoodi ei saa olla -1 tai 0. Jos on -1, niin kyseessa on epävalidi julkaisu ja jos on 0, niin kyseessa on jo aikaisemmin sisäiseksi duplikaatiksi identifioitu julkaisu       
+            Globals.tilaKoodi_vertailtava_julkaisu = 1; // ODS_Julkaisut-taulun vertailtavan julkaisun tilaKoodi ei saa olla -1 tai 0. Jos on -1, niin kyseessa on epävalidi julkaisu ja jos on 0, niin kyseessa on jo aikaisemmin sisäiseksi duplikaatiksi tunnistettu julkaisu       
             Globals.tilaKoodi_sisainen_duplikaatti = 0;
             Globals.tarkistusID_sisainen_duplikaatti = tietokantaoperaatiot.Hae_tarkistusID("sis_dupli");
             Globals.tarkistusID_yhteisjulkaisu = tietokantaoperaatiot.Hae_tarkistusID("sis_yhtj");
@@ -112,8 +112,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt1, taulu2);
 
-            //Debug.WriteLine("1 " + watch.Elapsed);
-
             //// SA
 
             tietokantaoperaatiot.Tyhjenna_taulu(taulu1);
@@ -139,15 +137,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
             tietokantaoperaatiot.Esta_indeksit(estettava_taulu[0], estettava_taulu[1], estettava_taulu[2]);
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt2, taulu2);
 
-            //Debug.WriteLine("2 " + watch.Elapsed);
-
             // ISSN- ja ISBN-tietojen päivitys SA_JulkaisutTMP-tauluun
             tietokantaoperaatiot.Paivita_ISSN_ja_ISBN_tunnukset(taulu1);
 
             tietokantaoperaatiot.Uudelleenrakenna_indeksit(taulu1);
             tietokantaoperaatiot.Uudelleenrakenna_indeksit(taulu2);
-
-            //Debug.WriteLine("3 " + watch.Elapsed);
 
 
             // ----------------------------------------------------------------------------------------------------
@@ -216,7 +210,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
             int ehdot_lkm = 13;
             for (int i = 1; i <= ehdot_lkm; i++) {
                 if (i == 4 || i == 5) { continue; }
-                //Debug.WriteLine("ehto " + i.ToString() + " " + watch.Elapsed);
                 tietokantaoperaatiot.Etsi_yhteisjulkaisut(i);
                 tietokantaoperaatiot.Liputa_duplikaatit(i);
                 tietokantaoperaatiot.Liputa_yhteisjulkaisut(i);
@@ -224,8 +217,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             // Muutosten jälkeen taas indeksien päivitys
             tietokantaoperaatiot.Uudelleenjarjesta_indeksit(taulu1);
-
-            //Debug.WriteLine("4 " + watch.Elapsed);
 
 
             // ----------------------------------------------------------------------------------------------------
@@ -247,16 +238,14 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
             // Jos duplikaatti
-            //tietokantaoperaatiot.Paivita_duplikaatit();
+            tietokantaoperaatiot.Paivita_duplikaatit();
 
             // Jos yhteisjulkaisu
             tietokantaoperaatiot.Luo_yhteisjulkaisut();
-            //tietokantaoperaatiot.Paivita_yhteisjulkaisut();
+            tietokantaoperaatiot.Paivita_yhteisjulkaisut();
 
             // Tarkistuslokiin
-            //tietokantaoperaatiot.Kirjoita_tarkistuslokiin();
-
-            //Debug.WriteLine("5 " + watch.Elapsed);
+            tietokantaoperaatiot.Kirjoita_tarkistuslokiin();
 
 
             // ----------------------------------------------------------------------------------------------------
