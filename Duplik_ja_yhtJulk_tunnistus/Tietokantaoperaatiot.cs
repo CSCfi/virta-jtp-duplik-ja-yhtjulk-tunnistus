@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Data;
+using System.Diagnostics;
 
 namespace Duplik_ja_yhtJulk_tunnistus
 {
@@ -275,7 +276,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             string sort_column = "JulkaisunTunnus";
 
-            // Duplikaatin/yhteisjulkaisun etsinnässä priorisoidaan julkaisuja, jotka eivät ole SA_julkaisutTMP-taulussa eli samassa satsissa
+            // Duplikaatin/yhteisjulkaisun etsinnässä priorisoidaan julkaisuja, jotka eivät ole SA_julkaisutTMP-taulussa eli samassa satsissa (ks. row_number)
             string with_columns = @"
                 t1.dupl_JulkaisunTunnus
                 ,t1.dupl_JulkaisunOrgTunnus
@@ -290,7 +291,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 ,t2.JulkaisutyyppiKoodi
                 ,t2.JulkaisunNimi
                 ,t2.DOI
-                ,rn = ROW_NUMBER() OVER (PARTITION BY t1.julkaisuntunnus ORDER BY (CASE WHEN t3.JulkaisunTunnus is null THEN 0 ELSE 1 END), t2." + sort_column + " desc )";
+                ,rn = ROW_NUMBER() OVER (PARTITION BY t1.julkaisuntunnus ORDER BY (CASE WHEN EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP where JulkaisunTunnus=t2.JulkaisunTunnus) THEN 1 ELSE 0 END), t2." + sort_column + " desc )";
 
             string update_columns = @"
                 t1.dupl_JulkaisunTunnus = JulkaisunTunnus
@@ -361,7 +362,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         with_columns +
                     @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
                     INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.DOI = t1.DOI and t2.JulkaisunTunnus != t1.JulkaisunTunnus and t1.DOI is not null
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and not ((t1.JulkaisutyyppiKoodi in ('A3', 'A4', 'B2', 'B3', 'D2', 'D3', 'E1') or t2.JulkaisutyyppiKoodi in ('A3', 'A4', 'B2', 'B3', 'D2', 'D3', 'E1')) and t1.JulkaisunNimi != t2.JulkaisunNimi)   
                 ) 
@@ -370,7 +370,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 2)
@@ -395,7 +394,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         AND t2.VolyymiTeksti = t1.VolyymiTeksti 
                         AND t2.LehdenNumeroTeksti = t1.LehdenNumeroTeksti 
                         AND t2.SivunumeroTeksti = t1.SivunumeroTeksti 
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
 
                 @")
@@ -405,7 +403,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 "WHERE " + update_where +
                 "DROP TABLE #temp";
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 3)
@@ -417,9 +414,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 INTO #temp
                 FROM julkaisut_ods.dbo.ODS_ISSN i	
                 INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t on t.JulkaisunTunnus=i.JulkaisunTunnus
-                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN2 = i.ISSN)
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN2 = i.ISSN);
 
-                ;WITH t1 AS
+                WITH t1 AS
                 (
                     SELECT " +
                         with_columns +
@@ -430,7 +427,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         AND t2.VolyymiTeksti = t1.VolyymiTeksti 
                         AND t2.LehdenNumeroTeksti = t1.LehdenNumeroTeksti 
                         AND t2.SivunumeroTeksti = t1.SivunumeroTeksti 
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
 
                 @")
@@ -440,7 +436,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 "WHERE " + update_where +
                 "DROP TABLE #temp";
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 6)
@@ -457,7 +452,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         AND t2.JulkaisunNimi = t1.JulkaisunNimi 
                         AND t2.KustantajanNimi = t1.KustantajanNimi 
                         AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and t1.JulkaisutyyppiKoodi IN ('C1','D5','E1','E2')
                     and t2.JulkaisutyyppiKoodi IN ('C1','D5','E1','E2')
@@ -468,7 +462,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 7)
@@ -481,7 +474,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         with_columns +
                     @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
                     INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.EmoJulkaisunNimi = t1.EmoJulkaisunNimi AND t2.JulkaisunNimi = t1.JulkaisunNimi AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus 
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and t1.JulkaisutyyppiKoodi IN ('A3','A4','B2','B3','D1','D2','D3','E1')
                     and t2.JulkaisutyyppiKoodi IN ('A3','A4','B2','B3','D1','D2','D3','E1')
@@ -492,7 +484,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 8)
@@ -506,7 +497,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
                     INNER JOIN julkaisut_ods.dbo.ODS_ISBN t4 ON t4.ISBN = t1.ISBN1 AND t4.JulkaisunTunnus != t1.JulkaisunTunnus
                     INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.JulkaisunTunnus = t4.JulkaisunTunnus AND t2.JulkaisunNimi = t1.JulkaisunNimi
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                 @")
                 UPDATE t1
@@ -514,7 +504,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 9)
@@ -528,7 +517,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
                     INNER JOIN julkaisut_ods.dbo.ODS_ISBN t4 ON t4.ISBN = t1.ISBN2 AND t4.JulkaisunTunnus != t1.JulkaisunTunnus
                     INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.JulkaisunTunnus = t4.JulkaisunTunnus AND t2.JulkaisunNimi = t1.JulkaisunNimi
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                 @")
                 UPDATE t1
@@ -536,7 +524,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 10)
@@ -553,7 +540,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         AND t2.lehdenNimi = t1.LehdenNimi 
                         AND t2.Julkaisuvuosi = t1.Julkaisuvuosi 
                         AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus 
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and t1.JulkaisutyyppiKoodi = 'D1'
                     and t2.JulkaisutyyppiKoodi = 'D1'
@@ -563,7 +549,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 11)
@@ -580,7 +565,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         AND t2.KustantajanNimi = t1.KustantajanNimi 
                         AND t2.Julkaisuvuosi = t1.Julkaisuvuosi 
                         AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus 
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and t1.JulkaisutyyppiKoodi = 'D4' 
                     and t2.JulkaisutyyppiKoodi = 'D4' 
@@ -590,7 +574,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 12)
@@ -607,7 +590,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         AND t2.AVsovellustyyppikoodi = t1.AVsovellustyyppikoodi 
                         AND t2.Julkaisuvuosi = t1.Julkaisuvuosi 
                         AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus 
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and t1.JulkaisutyyppiKoodi in ('I1', 'I2') 
                     and t2.JulkaisutyyppiKoodi  in ('I1', 'I2') 
@@ -617,7 +599,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
 
             else if (ehto == 13)
@@ -633,7 +614,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                         AND t2.JulkaisunNimi = t1.JulkaisunNimi 
                         AND t2.Julkaisuvuosi = t1.Julkaisuvuosi 
                         AND t2.JulkaisunTunnus <> t1.JulkaisunTunnus 
-                    LEFT JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t3 ON t3.JulkaisunTunnus = t2.JulkaisunTunnus
                     WHERE " + with_where +
                     @"and t1.JulkaisutyyppiKoodi IN ('KA', 'KP')
                     and t2.JulkaisutyyppiKoodi IN ('KA', 'KP')
@@ -643,8 +623,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 update_columns +
                 "WHERE " + update_where;
 
-                SqlConn.cmd.ExecuteNonQuery();
             }
+            //Debug.WriteLine(ehto + "\n" + SqlConn.cmd.CommandText);
+            SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
         }

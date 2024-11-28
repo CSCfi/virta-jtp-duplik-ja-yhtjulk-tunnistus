@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Diagnostics;
 
 namespace Duplik_ja_yhtJulk_tunnistus
 {
@@ -21,7 +22,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
             // Ajastin joka mittaa kuinka kauan koodin ajo kestaa 
-            // var watch = System.Diagnostics.Stopwatch.StartNew();
+            //var watch = System.Diagnostics.Stopwatch.StartNew();
 
             bool debug = true;
 
@@ -111,6 +112,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt1, taulu2);
 
+            //Debug.WriteLine("1 " + watch.Elapsed);
 
             //// SA
 
@@ -137,12 +139,15 @@ namespace Duplik_ja_yhtJulk_tunnistus
             tietokantaoperaatiot.Esta_indeksit(estettava_taulu[0], estettava_taulu[1], estettava_taulu[2]);
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt2, taulu2);
 
+            //Debug.WriteLine("2 " + watch.Elapsed);
+
             // ISSN- ja ISBN-tietojen päivitys SA_JulkaisutTMP-tauluun
             tietokantaoperaatiot.Paivita_ISSN_ja_ISBN_tunnukset(taulu1);
 
             tietokantaoperaatiot.Uudelleenrakenna_indeksit(taulu1);
             tietokantaoperaatiot.Uudelleenrakenna_indeksit(taulu2);
 
+            //Debug.WriteLine("3 " + watch.Elapsed);
 
 
             // ----------------------------------------------------------------------------------------------------
@@ -161,7 +166,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 Ehto 2 (Tunnistussääntö 2 v1): ISSN1 + volyymi + numero + sivut + julkaisun nimi
                 Ehto 3 (Tunnistussääntö 2 v2): ISSN2 + volyymi + numero + sivut + julkaisun nimi
 
-                Edit 3.11.2016: Ehtoja 4 ja 5 ei tarvita, koska ehtoihin 2 ja 3 tehtiin muutos siten, että niissä on mukana myös julkaisun nimi, jota ei aikaisemmin niissä ollut
+                Poistettu 11/2016 (ehtoihin 2 ja 3 tehtiin muutos, että niissä on mukana myös julkaisun nimi)
                 (Ehto 4: ISSN1 + volyymi + numero + julkaisun nimi)
                 (Ehto 5: ISSN2 + volyymi + numero + julkaisun nimi)
 
@@ -170,11 +175,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 Ehto 8 (Tunnistussääntö 5 v1): ISBN1 + julkaisun nimi
                 Ehto 9 (Tunnistussääntö 5 v2): ISBN2 + julkaisun nimi
 
-                2 / 2022
+                Lisätty 2/2022
                 Ehto 10 (Tunnistussääntö 6): Julkaisutyyppi + julkaisun nimi + lehden nimi + julkaisuvuosi (koskee julkaisutyyppeja D1)
                 Ehto 11 (Tunnistussääntö 7): Julkaisutyyppi + julkaisun nimi + kustantajan nimi + julkaisuvuosi (koskee julkaisutyyppeja D4)
 
-                11 / 2023
+                Lisätty 11/2023
                 Ehto 12 (Tunnistussääntö 8): Julkaisutyyppi + julkaisun nimi + julkaisuvuosi + AVsovellustyyppiKoodi (koskee julkaisutyyppejä I1, I2)
                 Ehto 13 (Tunnistussääntö 9): Julkaisutyyppi (ainoastaan Virran sisäisessä käytössä) + julkaisun nimi + julkaisuvuosi (koskee julkaisuita joiden muotokoodi on posteri tai abstrakti)
                 
@@ -209,9 +214,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
             */
 
             int ehdot_lkm = 13;
-            for (int i = 1; i <= ehdot_lkm; i++)
-            {
+            for (int i = 1; i <= ehdot_lkm; i++) {
                 if (i == 4 || i == 5) { continue; }
+                //Debug.WriteLine("ehto " + i.ToString() + " " + watch.Elapsed);
                 tietokantaoperaatiot.Etsi_yhteisjulkaisut(i);
                 tietokantaoperaatiot.Liputa_duplikaatit(i);
                 tietokantaoperaatiot.Liputa_yhteisjulkaisut(i);
@@ -220,6 +225,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Muutosten jälkeen taas indeksien päivitys
             tietokantaoperaatiot.Uudelleenjarjesta_indeksit(taulu1);
 
+            //Debug.WriteLine("4 " + watch.Elapsed);
 
 
             // ----------------------------------------------------------------------------------------------------
@@ -250,22 +256,21 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Tarkistuslokiin
             tietokantaoperaatiot.Kirjoita_tarkistuslokiin();
 
+            //Debug.WriteLine("5 " + watch.Elapsed);
 
 
-        // ----------------------------------------------------------------------------------------------------
+            // ----------------------------------------------------------------------------------------------------
 
-        loppu:
+            //loppu:
 
             //Console.Write("Loppu");
             //Console.ReadLine();
-            ;
+
+            // Ajastin, loppu
+            //watch.Stop();
+            //var elapsedMs = watch.ElapsedMilliseconds;
+            //Console.Write("Koko ajon kesto: " + elapsedMs);
         }
-
-        // Ajastin, loppu
-        //watch.Stop();
-        //var elapsedMs = watch.ElapsedMilliseconds;
-        //Console.Write("Koko ajon kesto: " + elapsedMs);
-
 
     }
 
