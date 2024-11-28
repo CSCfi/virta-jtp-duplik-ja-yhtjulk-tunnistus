@@ -274,8 +274,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
         {
             SqlConn.Avaa();
 
-            string sort_column = "JulkaisunTunnus";
-
             // Duplikaatin/yhteisjulkaisun etsinnässä priorisoidaan julkaisuja, jotka eivät ole SA_julkaisutTMP-taulussa eli samassa satsissa (ks. row_number)
             string with_columns = @"
                 t1.dupl_JulkaisunTunnus
@@ -291,7 +289,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 ,t2.JulkaisutyyppiKoodi
                 ,t2.JulkaisunNimi
                 ,t2.DOI
-                ,rn = ROW_NUMBER() OVER (PARTITION BY t1.julkaisuntunnus ORDER BY (CASE WHEN EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP where JulkaisunTunnus=t2.JulkaisunTunnus) THEN 1 ELSE 0 END), t2." + sort_column + " desc )";
+                ,rn = ROW_NUMBER() OVER (PARTITION BY t1.julkaisuntunnus ORDER BY (CASE WHEN EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP sa_tmp where sa_tmp.JulkaisunTunnus=t2.JulkaisunTunnus) THEN 1 ELSE 0 END), t2.JulkaisunTunnus desc)";
 
             string update_columns = @"
                 t1.dupl_JulkaisunTunnus = JulkaisunTunnus

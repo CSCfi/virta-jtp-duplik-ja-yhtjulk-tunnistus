@@ -247,14 +247,14 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
 
             // Jos duplikaatti
-            tietokantaoperaatiot.Paivita_duplikaatit();
+            //tietokantaoperaatiot.Paivita_duplikaatit();
 
             // Jos yhteisjulkaisu
             tietokantaoperaatiot.Luo_yhteisjulkaisut();
-            tietokantaoperaatiot.Paivita_yhteisjulkaisut();
+            //tietokantaoperaatiot.Paivita_yhteisjulkaisut();
 
             // Tarkistuslokiin
-            tietokantaoperaatiot.Kirjoita_tarkistuslokiin();
+            //tietokantaoperaatiot.Kirjoita_tarkistuslokiin();
 
             //Debug.WriteLine("5 " + watch.Elapsed);
 
