@@ -282,9 +282,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 t1.dupl_JulkaisunTunnus
                 ,t1.dupl_JulkaisunOrgTunnus
                 ,t1.dupl_OrganisaatioTunnus
-                --,t1.dupl_JulkaisutyyppiKoodi
-                --,t1.dupl_JulkaisunNimi
-                --,t1.dupl_DOI
                 ,t1.dupl_yhtjulk_ehto
                 ,t2.JulkaisunTunnus
                 ,t2.JulkaisunOrgTunnus
@@ -298,9 +295,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 t1.dupl_JulkaisunTunnus = JulkaisunTunnus
                 ,t1.dupl_JulkaisunOrgTunnus = JulkaisunOrgTunnus
                 ,t1.dupl_OrganisaatioTunnus = OrganisaatioTunnus
-                --,t1.dupl_JulkaisutyyppiKoodi = JulkaisutyyppiKoodi
-                --,t1.dupl_JulkaisunNimi = JulkaisunNimi
-                --,t1.dupl_DOI = DOI
                 ,t1.dupl_yhtjulk_ehto = " + ehto.ToString() + " ";
 
             // Tunnukset, joita ollaan poistamassa eikä siten hyväksytä duplikaattijulkaisuiksi
