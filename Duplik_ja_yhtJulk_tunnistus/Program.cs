@@ -23,6 +23,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             // Ajastin joka mittaa kuinka kauan koodin ajo kestaa 
             //var watch = System.Diagnostics.Stopwatch.StartNew();
+            //Debug.WriteLine("Lataus alkaa");
 
             bool debug = false;
 
@@ -131,8 +132,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Kirjoitus TMP-tauluun
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt2, taulu1);
 
-            // Kirjoitus myös ODS_JulkaisutTMP-tauluun jotta voidaan havaita samassa satsissa tulevat duplikaatit ja yhteisjulkaisut
-            // Indeksien kytkeminen pois päältä ennen kirjoitusta
+            // Kirjoitus myös ODS_JulkaisutTMP-tauluun, jotta voidaan havaita samassa satsissa uutena tulevat duplikaatit ja yhteisjulkaisut.
+            // Tosin kahden ensimmäistä kertaa toimitettavan julkaisun välistä duplikaatti-/yhteisjulkaisuyhteyttä ei voida havaita sellaisten tunnistusehtojen (ks. 2. vaihe) perusteella,
+            // joissa käytetään ISSN:ää tai ISBN:ää, koska ne luetaan tauluista ODS_ISSN ja ODS_ISBN, ja uusien julkaisujen tiedot kirjoitetaan niihin myöhemmässä vaiheessa, proseduurissa SA_ODS_SIIRTO. 
+            // Niidenkin ehtojen osalta tunnistus toki toimii oikein sitten kun julkaisut toimitetaan toisen kerran.
             string[] estettava_taulu = taulu2.Split('.');
             tietokantaoperaatiot.Esta_indeksit(estettava_taulu[0], estettava_taulu[1], estettava_taulu[2]);
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt2, taulu2);

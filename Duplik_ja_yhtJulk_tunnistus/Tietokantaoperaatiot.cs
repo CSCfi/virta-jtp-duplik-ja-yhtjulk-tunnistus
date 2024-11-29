@@ -728,7 +728,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.Avaa();
 
             // Uusien Yhteisjulkaisu_ID:eiden generointi
-            // Otetaan huomioon mahdollisuus että samassa satsissa on enemmän kuin yksi samaan yhteisjulkaisuun kuuluva osajulkaisu
+            // Tässä otetaan huomioon mahdollisuus että samassa satsissa on enemmän kuin yksi samaan yhteisjulkaisuun kuuluva osajulkaisu.
+            // Jos tietovarastossa on ennestään samaan yhteisjulkaisuun kuuluva julkaisu, uusilla julkaisuilla on sama arvo kentässä dupl_JulkaisunTunnus, koska etsinnässä (ks. funktio Etsi_yhteisjulkaisut) priorisoidaan julkaisuja, jotka eivät ole sa-taulussa.
+            // Jos yhteisjulkaisu muodostuu pelkästään nykyisessä satsissa olevista julkaisuista, ko. julkaisuilla on eri arvot kentässä dupl_JulkaisunTunnus, mikä huomioidaan alla CTE:ssä.
             SqlConn.cmd.CommandText = @"
                 WITH 
                 FilteredRows AS (
