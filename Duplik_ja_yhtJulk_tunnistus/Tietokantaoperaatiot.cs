@@ -727,11 +727,36 @@ namespace Duplik_ja_yhtJulk_tunnistus
         {
             SqlConn.Avaa();
 
-            // Uusien Yhteisjulkaisu_ID:eiden generointi
-            // Tässä otetaan huomioon mahdollisuus että samassa satsissa on enemmän kuin yksi samaan yhteisjulkaisuun kuuluva osajulkaisu.
-            // Jos tietovarastossa on ennestään samaan yhteisjulkaisuun kuuluva julkaisu, uusilla julkaisuilla on sama arvo kentässä dupl_JulkaisunTunnus, koska etsinnässä (ks. funktio Etsi_yhteisjulkaisut) priorisoidaan julkaisuja, jotka eivät ole sa-taulussa.
-            // Jos yhteisjulkaisu muodostuu pelkästään nykyisessä satsissa olevista julkaisuista, ko. julkaisuilla on eri arvot kentässä dupl_JulkaisunTunnus, mikä huomioidaan alla CTE:ssä.
+            /*
+             Uusien Yhteisjulkaisu_ID:eiden generointi
+             Tässä otetaan huomioon mahdollisuus että samassa satsissa on enemmän kuin yksi samaan yhteisjulkaisuun kuuluva osajulkaisu.
+             Jos tietovarastossa on ennestään samaan yhteisjulkaisuun kuuluva julkaisu, uusilla julkaisuilla on sama arvo kentässä dupl_JulkaisunTunnus, koska etsinnässä (ks. funktio Etsi_yhteisjulkaisut) priorisoidaan julkaisuja, jotka eivät ole sa-taulussa.
+             Jos yhteisjulkaisu muodostuu pelkästään nykyisessä satsissa olevista julkaisuista, ko. julkaisuilla on eri arvot kentässä dupl_JulkaisunTunnus, mikä huomioidaan alla CTE:ssä.
+             Aluksi selvitetään suurin luotu Yhteisjulkaisu_ID. Se ei ole välttämättä sama kuin suurin sarakkeessa Yhteisjulkaisu_ID oleva arvo, koska 1-n viimeksi luotua yhteisjulkaisua on voitu purkaa.
+             Hakualgoritmi (puolitushaku) toimii tehokkaasti kunhan n ei ole selvästi suurempi kuin 100.
+            */
             SqlConn.cmd.CommandText = @"
+                DECLARE @maxID int = (SELECT MAX(Yhteisjulkaisu_ID) FROM julkaisut_mds.koodi.julkaisuntunnus)
+                DECLARE @dist int = 100
+                DECLARE @index int = @maxID + @dist
+
+                WHILE (@index > @maxID)
+                BEGIN
+	                SET @dist = CEILING(1.0 * @dist / 2)
+	                IF EXISTS (
+		                select 1 
+		                from julkaisut_mds.koodi.julkaisuntunnus
+		                where julkaisuntunnus = RIGHT('0000000'+ CAST(@index AS NVARCHAR) + 'YJ', 10)
+	                )
+	                BEGIN
+		                SET @maxID = @index
+		                SET @index += @dist
+	                END
+	                ELSE BEGIN
+		                SET @index -= @dist
+	                END
+                END;
+                
                 WITH 
                 FilteredRows AS (
 	                SELECT 
@@ -759,16 +784,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
 		                ,DENSE_RANK() OVER (ORDER BY dupl_JulkaisunTunnus) AS rn_dupl_JulkaisunTunnus
 	                FROM JoinedRows
                 )
-                ,MaxYhteisjulkaisu_ID AS (
-                    SELECT MAX(Yhteisjulkaisu_ID) as max_id
-                    FROM julkaisut_mds.koodi.JulkaisunTunnus
-                )
 
                 UPDATE R1
-                SET Yhteisjulkaisu_ID = max_id + R2.rn_dupl_JulkaisunTunnus
+                SET Yhteisjulkaisu_ID = @maxID + R2.rn_dupl_JulkaisunTunnus
                 FROM FilteredRows R1
-                INNER JOIN OrderedRows R2 ON R2.julkaisuntunnus = R1.julkaisuntunnus
-                CROSS JOIN MaxYhteisjulkaisu_ID";
+                INNER JOIN OrderedRows R2 ON R2.julkaisuntunnus = R1.julkaisuntunnus";
 
             SqlConn.cmd.ExecuteNonQuery();
 
