@@ -736,59 +736,66 @@ namespace Duplik_ja_yhtJulk_tunnistus
              Hakualgoritmi (puolitushaku) toimii tehokkaasti kunhan n ei ole selvästi suurempi kuin 100.
             */
             SqlConn.cmd.CommandText = @"
-                DECLARE @maxID int = (SELECT MAX(Yhteisjulkaisu_ID) FROM julkaisut_mds.koodi.julkaisuntunnus)
-                DECLARE @dist int = 100
-                DECLARE @index int = @maxID + @dist
-
-                WHILE (@index > @maxID)
-                BEGIN
-	                SET @dist = CEILING(1.0 * @dist / 2)
-	                IF EXISTS (
-		                select 1 
-		                from julkaisut_mds.koodi.julkaisuntunnus
-		                where julkaisuntunnus = RIGHT('0000000'+ CAST(@index AS NVARCHAR) + 'YJ', 10)
-	                )
-	                BEGIN
-		                SET @maxID = @index
-		                SET @index += @dist
-	                END
-	                ELSE BEGIN
-		                SET @index -= @dist
-	                END
-                END;
-                
-                WITH 
-                FilteredRows AS (
-	                SELECT 
-		                 julkaisuntunnus
-		                ,dupl_JulkaisunTunnus
-		                ,Yhteisjulkaisu_ID
-		                ,ROW_NUMBER() OVER (ORDER BY julkaisuntunnus DESC) as rn_julkaisuntunnus
-                    FROM [julkaisut_ods].[dbo].[SA_JulkaisutTMP]
+                IF EXISTS (
+	                SELECT 1
+	                FROM [julkaisut_ods].[dbo].[SA_JulkaisutTMP]
 	                WHERE dupl_yhtjulk = 'yhtjulk' and Yhteisjulkaisu_ID is null
                 )
-                ,JoinedRows AS (
-	                SELECT
-		                R1.julkaisuntunnus
-		                ,CASE
-			                WHEN R1.rn_julkaisuntunnus > COALESCE(R2.rn_julkaisuntunnus, 0) THEN R1.dupl_JulkaisunTunnus
-                            ELSE R2.dupl_JulkaisunTunnus
-		                END AS dupl_JulkaisunTunnus
-	                FROM FilteredRows R1
-	                LEFT JOIN FilteredRows R2 ON R2.julkaisuntunnus = R1.dupl_JulkaisunTunnus
-                )
-                ,OrderedRows AS (
-	                SELECT 
-		                julkaisuntunnus
-		                ,dupl_JulkaisunTunnus
-		                ,DENSE_RANK() OVER (ORDER BY dupl_JulkaisunTunnus) AS rn_dupl_JulkaisunTunnus
-	                FROM JoinedRows
-                )
+                BEGIN
+	                DECLARE @maxID int = (SELECT MAX(Yhteisjulkaisu_ID) FROM julkaisut_mds.koodi.julkaisuntunnus)
+	                DECLARE @dist int = 100
+	                DECLARE @index int = @maxID + @dist
 
-                UPDATE R1
-                SET Yhteisjulkaisu_ID = @maxID + R2.rn_dupl_JulkaisunTunnus
-                FROM FilteredRows R1
-                INNER JOIN OrderedRows R2 ON R2.julkaisuntunnus = R1.julkaisuntunnus";
+	                WHILE (@index > @maxID)
+	                BEGIN
+		                SET @dist = CEILING(1.0 * @dist / 2)
+		                IF EXISTS (
+			                select 1 
+			                from julkaisut_mds.koodi.julkaisuntunnus
+			                where julkaisuntunnus = RIGHT('0000000'+ CAST(@index AS NVARCHAR) + 'YJ', 10)
+		                )
+		                BEGIN
+			                SET @maxID = @index
+			                SET @index += @dist
+		                END
+		                ELSE BEGIN
+			                SET @index -= @dist
+		                END
+	                END;
+                
+	                WITH 
+	                FilteredRows AS (
+		                SELECT 
+				             julkaisuntunnus
+			                ,dupl_JulkaisunTunnus
+                            ,Yhteisjulkaisu_ID
+			                ,ROW_NUMBER() OVER (ORDER BY julkaisuntunnus DESC) as rn_julkaisuntunnus
+		                FROM [julkaisut_ods].[dbo].[SA_JulkaisutTMP]
+		                WHERE dupl_yhtjulk = 'yhtjulk' and Yhteisjulkaisu_ID is null
+	                )
+	                ,JoinedRows AS (
+		                SELECT
+			                R1.julkaisuntunnus
+			                ,CASE
+				                WHEN R1.rn_julkaisuntunnus > COALESCE(R2.rn_julkaisuntunnus, 0) THEN R1.dupl_JulkaisunTunnus
+				                ELSE R2.dupl_JulkaisunTunnus
+			                END AS dupl_JulkaisunTunnus
+		                FROM FilteredRows R1
+		                LEFT JOIN FilteredRows R2 ON R2.julkaisuntunnus = R1.dupl_JulkaisunTunnus
+	                )
+	                ,OrderedRows AS (
+		                SELECT 
+			                julkaisuntunnus
+			                ,dupl_JulkaisunTunnus
+			                ,DENSE_RANK() OVER (ORDER BY dupl_JulkaisunTunnus) AS rn_dupl_JulkaisunTunnus
+		                FROM JoinedRows
+	                )
+
+	                UPDATE R1
+	                SET Yhteisjulkaisu_ID = @maxID + R2.rn_dupl_JulkaisunTunnus
+	                FROM FilteredRows R1
+	                INNER JOIN OrderedRows R2 ON R2.julkaisuntunnus = R1.julkaisuntunnus
+                END";
 
             SqlConn.cmd.ExecuteNonQuery();
 
