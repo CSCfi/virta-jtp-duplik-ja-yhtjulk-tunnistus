@@ -104,11 +104,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             foreach (DataRow row in dt1.Rows)
             {
-                row["JulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["JulkaisunNimi"].ToString());
-                row["KustantajanNimi"] = apufunktiot.muokkaa_nimea(row["KustantajanNimi"].ToString());
-                row["EmojulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["EmojulkaisunNimi"].ToString());
-                row["Lehdennimi"] = apufunktiot.muokkaa_nimea(row["Lehdennimi"].ToString());
-                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());
+                row["JulkaisunNimi"] = apufunktiot.Muokkaa_nimea(row["JulkaisunNimi"].ToString());
+                row["KustantajanNimi"] = apufunktiot.Muokkaa_nimea(row["KustantajanNimi"].ToString());
+                row["EmojulkaisunNimi"] = apufunktiot.Muokkaa_nimea(row["EmojulkaisunNimi"].ToString());
+                row["Lehdennimi"] = apufunktiot.Muokkaa_nimea(row["Lehdennimi"].ToString());
+                row["DOI"] = apufunktiot.Muokkaa_DOI(row["DOI"].ToString());
             }
 
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt1, taulu2);
@@ -122,11 +122,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             foreach (DataRow row in dt2.Rows)
             {
-                row["JulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["JulkaisunNimi"].ToString());
-                row["KustantajanNimi"] = apufunktiot.muokkaa_nimea(row["KustantajanNimi"].ToString());
-                row["EmojulkaisunNimi"] = apufunktiot.muokkaa_nimea(row["EmojulkaisunNimi"].ToString());
-                row["Lehdennimi"] = apufunktiot.muokkaa_nimea(row["Lehdennimi"].ToString());
-                row["DOI"] = apufunktiot.muokkaa_DOI(row["DOI"].ToString());
+                row["JulkaisunNimi"] = apufunktiot.Muokkaa_nimea(row["JulkaisunNimi"].ToString());
+                row["KustantajanNimi"] = apufunktiot.Muokkaa_nimea(row["KustantajanNimi"].ToString());
+                row["EmojulkaisunNimi"] = apufunktiot.Muokkaa_nimea(row["EmojulkaisunNimi"].ToString());
+                row["Lehdennimi"] = apufunktiot.Muokkaa_nimea(row["Lehdennimi"].ToString());
+                row["DOI"] = apufunktiot.Muokkaa_DOI(row["DOI"].ToString());
             }
 
             // Kirjoitus TMP-tauluun

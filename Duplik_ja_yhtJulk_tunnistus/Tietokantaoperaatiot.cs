@@ -38,7 +38,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
     class Tietokantaoperaatiot
     {
 
-        private SqlCon SqlConn;
+        private readonly SqlCon SqlConn;
 
         public Tietokantaoperaatiot() { }
 
@@ -635,7 +635,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // 1 Duplikaatti ei kuulu yhteisjulkaisuun
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
-                SET t1.dupl_yhtjulk = 'dupl'
+                SET dupl_yhtjulk = 'dupl'
                 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
                 INNER JOIN julkaisut_mds.koodi.JulkaisunTunnus t2 ON t2.JulkaisunTunnus = t1.dupl_JulkaisunTunnus
                 WHERE t1.dupl_yhtjulk_ehto = @ehto
@@ -651,10 +651,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
                 SET 
-                    t1.dupl_yhtjulk = 'dupl'
-                    ,t1.dupl_JulkaisunTunnus = t3.JulkaisunTunnus
-                    ,t1.dupl_OrganisaatioTunnus = t3.OrgTunnus
-                    ,t1.dupl_JulkaisunOrgTunnus = t3.JulkaisunOrgTunnus
+                     dupl_yhtjulk = 'dupl'
+                    ,dupl_JulkaisunTunnus = t3.JulkaisunTunnus
+                    ,dupl_OrganisaatioTunnus = t3.OrgTunnus
+                    ,dupl_JulkaisunOrgTunnus = t3.JulkaisunOrgTunnus
                 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
                 INNER JOIN julkaisut_mds.koodi.JulkaisunTunnus t2 ON t2.JulkaisunTunnus = t1.dupl_JulkaisunTunnus
                 INNER JOIN julkaisut_mds.koodi.julkaisuntunnus t3 ON t3.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID and t3.OrgTunnus = t1.OrganisaatioTunnus and t3.JulkaisunOrgTunnus != t1.JulkaisunOrgTunnus
@@ -676,7 +676,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // 1 Duplikaatti ei kuulu yhteisjulkaisuun
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
-                SET t1.dupl_yhtjulk = 'yhtjulk'
+                SET dupl_yhtjulk = 'yhtjulk'
                 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
                 INNER JOIN julkaisut_mds.koodi.JulkaisunTunnus t2 ON t2.JulkaisunTunnus = t1.dupl_JulkaisunTunnus
                 WHERE t1.dupl_yhtjulk_ehto = @ehto
@@ -688,8 +688,8 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
                 SET 
-                     t1.dupl_yhtjulk = 'yhtjulk'
-                    ,t1.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID
+                     dupl_yhtjulk = 'yhtjulk'
+                    ,Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID
                 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
                 INNER JOIN julkaisut_mds.koodi.JulkaisunTunnus t2 ON t2.JulkaisunTunnus = t1.dupl_JulkaisunTunnus
                 LEFT JOIN julkaisut_mds.koodi.julkaisuntunnus t3 ON t3.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID and t3.OrgTunnus = t1.OrganisaatioTunnus
@@ -710,7 +710,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Tilan päivitys
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
-                SET t1.JulkaisunTilaKoodi = @JulkaisunTilaKoodi
+                SET JulkaisunTilaKoodi = @JulkaisunTilaKoodi
                 FROM julkaisut_ods.dbo.SA_Julkaisut t1
                 INNER JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t2 ON t2.JulkaisunTunnus = t1.JulkaisunTunnus
                  --#RT660639 
@@ -733,7 +733,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
              Jos tietovarastossa on ennestään samaan yhteisjulkaisuun kuuluva julkaisu, uusilla julkaisuilla on sama arvo kentässä dupl_JulkaisunTunnus, koska etsinnässä (ks. funktio Etsi_yhteisjulkaisut) priorisoidaan julkaisuja, jotka eivät ole sa-taulussa.
              Jos yhteisjulkaisu muodostuu pelkästään nykyisessä satsissa olevista julkaisuista, ko. julkaisuilla on eri arvot kentässä dupl_JulkaisunTunnus, mikä huomioidaan alla CTE:ssä.
              Aluksi selvitetään suurin luotu Yhteisjulkaisu_ID. Se ei ole välttämättä sama kuin suurin sarakkeessa Yhteisjulkaisu_ID oleva arvo, koska 1-n viimeksi luotua yhteisjulkaisua on voitu purkaa.
-             Hakualgoritmi (puolitushaku) toimii tehokkaasti kunhan n ei ole selvästi suurempi kuin 100.
+             Hakualgoritmi (puolitushaku) toimii tehokkaasti kunhan n ei ole selvästi suurempi kuin muuttujan dist arvo.
             */
             SqlConn.cmd.CommandText = @"
                 IF EXISTS (
@@ -810,7 +810,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Yhteisjulkaisu_ID:n päivitys
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
-                SET t1.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID
+                SET
+                     Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID
+                    ,Paivityspaivamaara = getdate()
                 FROM julkaisut_mds.koodi.julkaisuntunnus t1
                 INNER JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t2 on t2.JulkaisunTunnus = t1.JulkaisunTunnus
                 WHERE 1=1 --t1.Yhteisjulkaisu_ID = 0
@@ -820,7 +822,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Generoidun yhteisjulkaisun toisen osapuolen Yhteisjulkaisu_ID:n päivitys
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
-                SET t1.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID
+                SET
+                     Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID
+                    ,Paivityspaivamaara = getdate()
                 FROM julkaisut_mds.koodi.julkaisuntunnus t1
                 INNER JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t2 on t2.dupl_JulkaisunTunnus = t1.JulkaisunTunnus
                 WHERE 1=1 --t1.Yhteisjulkaisu_ID = 0
