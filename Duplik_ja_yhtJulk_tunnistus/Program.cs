@@ -120,6 +120,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // SA_Julkaisut-taulun tiedot datatauluun, jota muokataan ja joka lopuksi kirjoitetaan TMP-tauluun
             DataTable dt2 = tietokantaoperaatiot.Lue_tietokantataulu_datatauluun("SA");
 
+            // Tarkistus onko käsiteltäviä rivejä. Jos kyseessä on txt-tiedostolla tehtävä julkaisujen poisto, sa-tauluun ei ole kirjoitettu mitään.
+            if (dt2 == null || dt2.Rows.Count == 0) { goto loppu; }
+
+            // Rivien läpikäynti
             foreach (DataRow row in dt2.Rows)
             {
                 row["JulkaisunNimi"] = apufunktiot.Muokkaa_nimea(row["JulkaisunNimi"].ToString());
@@ -135,7 +139,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Kirjoitus myös ODS_JulkaisutTMP-tauluun, jotta voidaan havaita samassa satsissa uutena tulevat duplikaatit ja yhteisjulkaisut.
             // Tosin kahden ensimmäistä kertaa toimitettavan julkaisun välistä duplikaatti-/yhteisjulkaisuyhteyttä ei voida havaita sellaisten tunnistusehtojen (ks. 2. vaihe) perusteella,
             // joissa käytetään ISSN:ää tai ISBN:ää, koska ne luetaan tauluista ODS_ISSN ja ODS_ISBN, ja uusien julkaisujen tiedot kirjoitetaan niihin myöhemmässä vaiheessa, proseduurissa SA_ODS_SIIRTO. 
-            // Niidenkin ehtojen osalta tunnistus toki toimii oikein sitten kun julkaisut toimitetaan toisen kerran.
+
             string[] estettava_taulu = taulu2.Split('.');
             tietokantaoperaatiot.Esta_indeksit(estettava_taulu[0], estettava_taulu[1], estettava_taulu[2]);
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt2, taulu2);
@@ -251,10 +255,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
             tietokantaoperaatiot.Kirjoita_tarkistuslokiin();
 
 
-            // ----------------------------------------------------------------------------------------------------
+        // ----------------------------------------------------------------------------------------------------
 
-            //loppu:
-
+            loppu:
+            ;
             //Console.Write("Loppu");
             //Console.ReadLine();
 

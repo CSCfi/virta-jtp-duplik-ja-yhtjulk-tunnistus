@@ -846,7 +846,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Duplikaatit
             SqlConn.cmd.CommandText = @"
                 INSERT INTO julkaisut_ods.dbo.Tarkistusloki (JulkaisunTunnus, JulkaisunOrgTunnus, OrganisaatioTunnus, LatausID, TarkistusID, Tila, Kuvaus, Lisatieto)
-                SELECT
+                SELECT distinct
 	                t1.JulkaisunTunnus
 	                ,t1.JulkaisunOrgTunnus
 	                ,t1.OrganisaatioTunnus
