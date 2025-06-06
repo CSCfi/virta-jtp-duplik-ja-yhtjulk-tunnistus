@@ -73,10 +73,10 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 WHERE NOT EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus) OR o.JulkaisunTilaKoodi is null";
             SqlConn.cmd.ExecuteNonQuery();
 
-            // Poistetut
+            // Poistetut ja duplikaatiksi tunnistetut
             SqlConn.cmd.CommandText = @"
                 DELETE o FROM [julkaisut_ods].[dbo].[ODS_JulkaisutTMP] o
-                WHERE EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus and JulkaisunTilaKoodi = -1)";
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus and JulkaisunTilaKoodi in (-1,0))";
             SqlConn.cmd.ExecuteNonQuery();
 
             // SA-taulussa olevat
@@ -733,7 +733,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
              Jos tietovarastossa on ennestään samaan yhteisjulkaisuun kuuluva julkaisu, uusilla julkaisuilla on sama arvo kentässä dupl_JulkaisunTunnus, koska etsinnässä (ks. funktio Etsi_yhteisjulkaisut) priorisoidaan julkaisuja, jotka eivät ole sa-taulussa.
              Jos yhteisjulkaisu muodostuu pelkästään nykyisessä satsissa olevista julkaisuista, ko. julkaisuilla on eri arvot kentässä dupl_JulkaisunTunnus, mikä huomioidaan alla CTE:ssä.
              Aluksi selvitetään suurin luotu Yhteisjulkaisu_ID. Se ei ole välttämättä sama kuin suurin sarakkeessa Yhteisjulkaisu_ID oleva arvo, koska 1-n viimeksi luotua yhteisjulkaisua on voitu purkaa.
-             Hakualgoritmi (puolitushaku) toimii tehokkaasti kunhan n ei ole selvästi suurempi kuin muuttujan dist arvo.
             */
             SqlConn.cmd.CommandText = @"
                 IF EXISTS (
@@ -742,26 +741,11 @@ namespace Duplik_ja_yhtJulk_tunnistus
 	                WHERE dupl_yhtjulk = 'yhtjulk' and Yhteisjulkaisu_ID is null
                 )
                 BEGIN
-	                DECLARE @maxID int = (SELECT MAX(Yhteisjulkaisu_ID) FROM julkaisut_mds.koodi.julkaisuntunnus)
-	                DECLARE @dist int = 100
-	                DECLARE @index int = @maxID + @dist
-
-	                WHILE (@index > @maxID)
-	                BEGIN
-		                SET @dist = CEILING(1.0 * @dist / 2)
-		                IF EXISTS (
-			                select 1 
-			                from julkaisut_mds.koodi.julkaisuntunnus
-			                where julkaisuntunnus = RIGHT('0000000'+ CAST(@index AS NVARCHAR) + 'YJ', 10)
-		                )
-		                BEGIN
-			                SET @maxID = @index
-			                SET @index += @dist
-		                END
-		                ELSE BEGIN
-			                SET @index -= @dist
-		                END
-	                END;
+                    DECLARE @maxID int = (
+	                    SELECT MAX(CAST(LEFT(julkaisuntunnus, LEN(julkaisuntunnus) - 2) AS int))
+	                    FROM julkaisut_mds.koodi.julkaisuntunnus
+	                    WHERE julkaisuntunnus LIKE '%YJ'
+                    );
                 
 	                WITH 
 	                FilteredRows AS (
