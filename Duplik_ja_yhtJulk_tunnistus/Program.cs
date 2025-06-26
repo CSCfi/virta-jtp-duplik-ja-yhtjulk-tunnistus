@@ -47,17 +47,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
 
             string ConnString = "Server=" + server + ";Trusted_Connection=true";
 
-            // Täällä ovat tarvittavat apufunktiot ja tietokantaoperaatiot
-            Apufunktiot apufunktiot = new Apufunktiot();
-            Tietokantaoperaatiot tietokantaoperaatiot = new Tietokantaoperaatiot(ConnString);
-
-            // Globaalit muuttujat
-            Globals.min_vuosi = 2015; // Tarkistus ja vertailu vain niille julkaisuille, joille julkaisuvuosi >= min_vuosi.
-            Globals.tilaKoodi_vertailtava_julkaisu = 1; // ODS_Julkaisut-taulun vertailtavan julkaisun tilaKoodi ei saa olla -1 tai 0. Jos on -1, niin kyseessa on epävalidi julkaisu ja jos on 0, niin kyseessa on jo aikaisemmin sisäiseksi duplikaatiksi tunnistettu julkaisu       
-            Globals.tilaKoodi_sisainen_duplikaatti = 0;
-            Globals.tarkistusID_sisainen_duplikaatti = tietokantaoperaatiot.Hae_tarkistusID("sis_dupli");
-            Globals.tarkistusID_yhteisjulkaisu = tietokantaoperaatiot.Hae_tarkistusID("sis_yhtj");
-
 
 
             // ---------------------------------------------------------------------------------------------------------------
@@ -86,6 +75,18 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // ---------------------------------------------------------------------------------------------------------------
 
 
+            // Täällä ovat tarvittavat apufunktiot ja tietokantaoperaatiot
+            Apufunktiot apufunktiot = new Apufunktiot();
+            Tietokantaoperaatiot tietokantaoperaatiot = new Tietokantaoperaatiot(ConnString);
+
+            // Globaalit muuttujat
+            Globals.min_vuosi = 2015; // Tarkistus ja vertailu vain niille julkaisuille, joille julkaisuvuosi >= min_vuosi.
+            Globals.tilaKoodi_vertailtava_julkaisu = 1; // ODS_Julkaisut-taulun vertailtavan julkaisun tilaKoodi ei saa olla -1 tai 0. Jos on -1, niin kyseessa on epävalidi julkaisu ja jos on 0, niin kyseessa on jo aikaisemmin sisäiseksi duplikaatiksi tunnistettu julkaisu       
+            Globals.tilaKoodi_sisainen_duplikaatti = 0;
+            Globals.tarkistusID_sisainen_duplikaatti = tietokantaoperaatiot.Hae_tarkistusID("sis_dupli");
+            Globals.tarkistusID_yhteisjulkaisu = tietokantaoperaatiot.Hae_tarkistusID("sis_yhtj");
+
+
 
             ////// 1. Vaihe
 
@@ -112,6 +113,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             }
 
             tietokantaoperaatiot.Kirjoita_datataulu_tietokantaan(dt1, taulu2);
+
 
             //// SA
 

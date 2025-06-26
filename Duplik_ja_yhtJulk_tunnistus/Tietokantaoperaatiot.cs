@@ -70,19 +70,19 @@ namespace Duplik_ja_yhtJulk_tunnistus
             // Tilakoodi tyhjä
             SqlConn.cmd.CommandText = @"
                 DELETE o FROM [julkaisut_ods].[dbo].[ODS_JulkaisutTMP] o
-                WHERE NOT EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus) OR o.JulkaisunTilaKoodi is null";
+                WHERE NOT EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut j where j.JulkaisunTunnus = o.JulkaisunTunnus) OR o.JulkaisunTilaKoodi is null";
             SqlConn.cmd.ExecuteNonQuery();
 
             // Poistetut ja duplikaatiksi tunnistetut
             SqlConn.cmd.CommandText = @"
                 DELETE o FROM [julkaisut_ods].[dbo].[ODS_JulkaisutTMP] o
-                WHERE EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus and JulkaisunTilaKoodi in (-1,0))";
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.ODS_Julkaisut j where j.JulkaisunTunnus = o.JulkaisunTunnus and j.JulkaisunTilaKoodi in (-1,0))";
             SqlConn.cmd.ExecuteNonQuery();
 
             // SA-taulussa olevat
             SqlConn.cmd.CommandText = @"
                 DELETE o FROM [julkaisut_ods].[dbo].[ODS_JulkaisutTMP] o
-                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_Julkaisut where JulkaisunTunnus = o.JulkaisunTunnus)";
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_Julkaisut j where j.JulkaisunTunnus = o.JulkaisunTunnus)";
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
@@ -329,7 +329,8 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     where edt.organisaatiotunnus = t1.OrganisaatioTunnus 
                     and (
                         (edt.ekajulkorgtunnus = t1.JulkaisunOrgTunnus and edt.tokajulkorgtunnus = t2.JulkaisunOrgTunnus) 
-                        or (edt.ekajulkorgtunnus = t2.JulkaisunOrgTunnus and edt.tokajulkorgtunnus = t1.JulkaisunOrgTunnus)
+                        or 
+                        (edt.ekajulkorgtunnus = t2.JulkaisunOrgTunnus and edt.tokajulkorgtunnus = t1.JulkaisunOrgTunnus)
                     )
                 ) ";
 
@@ -376,7 +377,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 INTO #temp
                 FROM julkaisut_ods.dbo.ODS_ISSN i	
                 INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t on t.JulkaisunTunnus=i.JulkaisunTunnus
-                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN1 = i.ISSN);
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN1 = i.ISSN) AND i.JulkaisunTunnus not like '%YJ';
 
                 WITH t1 AS
                 (
@@ -409,7 +410,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 INTO #temp
                 FROM julkaisut_ods.dbo.ODS_ISSN i	
                 INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t on t.JulkaisunTunnus=i.JulkaisunTunnus
-                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN2 = i.ISSN);
+                WHERE EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP WHERE ISSN2 = i.ISSN) AND i.JulkaisunTunnus not like '%YJ';
 
                 WITH t1 AS
                 (
@@ -490,7 +491,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     SELECT " +
                         with_columns +
                     @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
-                    INNER JOIN julkaisut_ods.dbo.ODS_ISBN t4 ON t4.ISBN = t1.ISBN1 AND t4.JulkaisunTunnus != t1.JulkaisunTunnus
+                    INNER JOIN julkaisut_ods.dbo.ODS_ISBN t4 ON t4.ISBN = t1.ISBN1 AND t4.JulkaisunTunnus != t1.JulkaisunTunnus AND t4.JulkaisunTunnus not like '%YJ'
                     INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.JulkaisunTunnus = t4.JulkaisunTunnus AND t2.JulkaisunNimi = t1.JulkaisunNimi
                     WHERE " + with_where +
                 @")
@@ -510,7 +511,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     SELECT " +
                         with_columns +
                     @"FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1 
-                    INNER JOIN julkaisut_ods.dbo.ODS_ISBN t4 ON t4.ISBN = t1.ISBN2 AND t4.JulkaisunTunnus != t1.JulkaisunTunnus
+                    INNER JOIN julkaisut_ods.dbo.ODS_ISBN t4 ON t4.ISBN = t1.ISBN2 AND t4.JulkaisunTunnus != t1.JulkaisunTunnus AND t4.JulkaisunTunnus not like '%YJ'
                     INNER JOIN julkaisut_ods.dbo.ODS_JulkaisutTMP t2 ON t2.JulkaisunTunnus = t4.JulkaisunTunnus AND t2.JulkaisunNimi = t1.JulkaisunNimi
                     WHERE " + with_where +
                 @")
@@ -632,7 +633,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.Avaa();
             SqlConn.cmd.Parameters.AddWithValue("@ehto", ehto);
 
-            // 1 Duplikaatti ei kuulu yhteisjulkaisuun
+            // 1 Duplikaatti on saman organisaation eikä kuulu yhteisjulkaisuun
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
                 SET dupl_yhtjulk = 'dupl'
@@ -646,8 +647,8 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 and NOT ((t1.JulkaisunTilaKoodi = 3 AND (t1.JulkaisutyyppiKoodi = 'KA' OR t1.JulkaisutyyppiKoodi = 'KP')))";
             SqlConn.cmd.ExecuteNonQuery();
 
-            // 2 Duplikaatti kuuluu yhteisjulkaisuun ja julkaisun organisaatio on mukana siinä
-            // Samalla duplikaattijulkaisun tietojen päivitys
+            // 2 Duplikaatti kuuluu yhteisjulkaisuun ja julkaisun organisaatio on mukana siinä (ja kyseessä eri julkaisu)
+            // Samalla duplikaattijulkaisun tietojen päivitys (tarkistuslokia varten)
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
                 SET 
@@ -673,7 +674,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             SqlConn.Avaa();
             SqlConn.cmd.Parameters.AddWithValue("@ehto", ehto);
 
-            // 1 Duplikaatti ei kuulu yhteisjulkaisuun
+            // 1 Duplikaatti on eri organisaation eikä kuulu yhteisjulkaisuun
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
                 SET dupl_yhtjulk = 'yhtjulk'
@@ -684,7 +685,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 and t2.Yhteisjulkaisu_ID = 0";
             SqlConn.cmd.ExecuteNonQuery();
 
-            // 2 Duplikaatti kuuluu yhteisjulkaisuun mutta julkaisun organisaatio ei ole mukana siinä
+            // 2 Duplikaatti kuuluu yhteisjulkaisuun eikä organisaatio ei ole mukana siinä, tai jos on niin kyseessä sama julkaisu
             SqlConn.cmd.CommandText = @"
                 UPDATE t1
                 SET 
@@ -695,7 +696,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 LEFT JOIN julkaisut_mds.koodi.julkaisuntunnus t3 ON t3.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID and t3.OrgTunnus = t1.OrganisaatioTunnus
                 WHERE t1.dupl_yhtjulk_ehto = @ehto
                 and t2.Yhteisjulkaisu_ID != 0
-                and t3.OrgTunnus is null";
+                and (t3.OrgTunnus is null or t3.JulkaisunTunnus = t1.JulkaisunTunnus)";
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();
