@@ -800,7 +800,8 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     ,Paivityspaivamaara = getdate()
                 FROM julkaisut_mds.koodi.julkaisuntunnus t1
                 INNER JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t2 on t2.JulkaisunTunnus = t1.JulkaisunTunnus
-                WHERE 1=1 --t1.Yhteisjulkaisu_ID = 0
+                WHERE 1=1
+                and t1.Yhteisjulkaisu_ID != t2.Yhteisjulkaisu_ID
                 and t2.Yhteisjulkaisu_ID is not null";
             SqlConn.cmd.ExecuteNonQuery();
 
@@ -812,7 +813,8 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     ,Paivityspaivamaara = getdate()
                 FROM julkaisut_mds.koodi.julkaisuntunnus t1
                 INNER JOIN julkaisut_ods.dbo.SA_JulkaisutTMP t2 on t2.dupl_JulkaisunTunnus = t1.JulkaisunTunnus
-                WHERE 1=1 --t1.Yhteisjulkaisu_ID = 0
+                WHERE 1=1 
+                and t1.Yhteisjulkaisu_ID != t2.Yhteisjulkaisu_ID
                 and t2.Yhteisjulkaisu_ID is not null";
             SqlConn.cmd.ExecuteNonQuery();
 
