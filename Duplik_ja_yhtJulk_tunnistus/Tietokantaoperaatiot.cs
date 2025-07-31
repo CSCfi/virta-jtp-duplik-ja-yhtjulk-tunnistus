@@ -289,7 +289,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                 ,t2.JulkaisutyyppiKoodi
                 ,t2.JulkaisunNimi
                 ,t2.DOI
-                ,rn = ROW_NUMBER() OVER (PARTITION BY t1.julkaisuntunnus ORDER BY (CASE WHEN EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP sa_tmp where sa_tmp.JulkaisunTunnus=t2.JulkaisunTunnus) THEN 1 ELSE 0 END), t2.JulkaisunTunnus desc)";
+                ,rn = ROW_NUMBER() OVER (PARTITION BY t1.julkaisuntunnus ORDER BY (CASE WHEN EXISTS (select 1 from julkaisut_ods.dbo.SA_JulkaisutTMP sa_tmp where sa_tmp.JulkaisunTunnus=t2.JulkaisunTunnus) THEN 1 ELSE 0 END), t2.JulkaisunTunnus)";
 
             string update_columns = @"
                 t1.dupl_JulkaisunTunnus = JulkaisunTunnus
@@ -693,7 +693,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     ,Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID
                 FROM julkaisut_ods.dbo.SA_JulkaisutTMP t1
                 INNER JOIN julkaisut_mds.koodi.JulkaisunTunnus t2 ON t2.JulkaisunTunnus = t1.dupl_JulkaisunTunnus
-                LEFT JOIN julkaisut_mds.koodi.julkaisuntunnus t3 ON t3.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID and t3.OrgTunnus = t1.OrganisaatioTunnus
+                LEFT JOIN julkaisut_mds.koodi.JulkaisunTunnus t3 ON t3.Yhteisjulkaisu_ID = t2.Yhteisjulkaisu_ID and t3.OrgTunnus = t1.OrganisaatioTunnus
                 WHERE t1.dupl_yhtjulk_ehto = @ehto
                 and t2.Yhteisjulkaisu_ID != 0
                 and (t3.OrgTunnus is null or t3.JulkaisunTunnus = t1.JulkaisunTunnus)";
@@ -719,15 +719,53 @@ namespace Duplik_ja_yhtJulk_tunnistus
                     (t3.ekajulkorgtunnus=t2.JulkaisunOrgTunnus AND t3.tokajulkorgtunnus = t2.dupl_JulkaisunOrgTunnus) OR
                     (t3.tokajulkorgtunnus=t2.JulkaisunOrgTunnus AND t3.ekajulkorgtunnus = t2.dupl_JulkaisunOrgTunnus)
                 WHERE t2.dupl_yhtjulk = 'dupl' AND t3.ID IS NULL";
+
             SqlConn.cmd.ExecuteNonQuery();
+
+            SqlConn.Sulje();
+        }
+
+
+        public void Tarkista_yhteisjulkaisu_id()
+        {
+            /*
+                Justus-latausta varten tehtävä tarkistus. Koskee tilannetta, jossa julkaisu X on tunnistettu yhteisjulkaisuksi samassa satsissa olevan julkaisun Y kanssa (ja toisinpäin).
+                (Pätee myös tilanteessa, jossa enemmän kuin kaksi samassa satsissa olevaa julkaisua tunnistetaan toistensa kanssa yhteisjulkaisuksi.)
+
+                1. X:lle on aiemmin tunnistettu yhteisjulkaisu (joka ei ole nyt samassa satsissa), samoin Y:lle (yhteisjulkaisu ei samassa satsissa)
+                    -> X:n yhteisjulkaisu_id:ksi tulee Y:n yhteisjulkaisu_id (kohdassa "Liputa_yhteisjulkaisut")
+                    -> Y:n yhteisjulkaisu_id:ksi tulee X:n yhteisjulkaisu_id
+                    -> Niille tulee siis eri yhteisjulkaisu_id
+
+                2. X:lle ei ole aiemmin tunnistettu yhteisjulkaisua, Y:lle on tunnistettu yhteisjulkaisu (joka ei ole nyt samassa satsissa)
+                    -> X:n yhteisjulkaisu_id:ksi tulee Y:n yhteisjulkaisu_id 
+                    -> Y:n yhteisjulkaisu_id:ksi tulee NULL
+                    -> Y:lle generoidaan yhteisjulkaisu_id kohdassa "Luo_yhteisjulkaisut"
+                    -> Kohdassa "Paivita_yhteisjulkaisut" käy lopulta niin, että Y:n yhteisjulkaisu_id:ksi tulee sama kuin ennen ja X:n yhteisjulkaisu_id:ksi tulee generoitu yhteisjulkaisu_id
+                    -> Generoituun yhteisjulkaisuun jää vain yksi osajulkaisu, joten se purkautuu myöhemmin (proseduurin "Yhteisjulkaisut_Siivous" ajon yhteydessä)
+                    
+                -> Molemmissa tapauksissa vanha tunnistus ei voi olla enää validi, koska yhteisjulkaisutunnistuksessa priorisoidaan julkaisuja, jotka eivät ole samassa satsissa
+                -> Molempien yhteisjulkaisu_id tulee olla NULL, jotta niille luodaan täysin uusi yhteisjulkaisu kohdassa "Luo_yhteisjulkaisut"
+            */
+
+            SqlConn.Avaa();
+
+            SqlConn.cmd.CommandText = @"
+                UPDATE t1
+                SET Yhteisjulkaisu_ID = null
+                FROM julkaisut_ods.dbo.SA_JulkaisutTMP as t1
+                JOIN julkaisut_ods.dbo.SA_JulkaisutTMP as t2 ON t2.JulkaisunTunnus = t1.dupl_JulkaisunTunnus
+                WHERE t1.dupl_yhtjulk = 'yhtjulk'
+                    AND t1.Yhteisjulkaisu_ID is not null
+                    AND (t2.Yhteisjulkaisu_ID is null OR t1.Yhteisjulkaisu_ID != t2.Yhteisjulkaisu_ID)";
+            SqlConn.cmd.ExecuteNonQuery();
+
             SqlConn.Sulje();
         }
 
 
         public void Luo_yhteisjulkaisut()
         {
-            SqlConn.Avaa();
-
             /*
              Uusien Yhteisjulkaisu_ID:eiden generointi
              Tässä otetaan huomioon mahdollisuus että samassa satsissa on enemmän kuin yksi samaan yhteisjulkaisuun kuuluva osajulkaisu.
@@ -735,6 +773,9 @@ namespace Duplik_ja_yhtJulk_tunnistus
              Jos yhteisjulkaisu muodostuu pelkästään nykyisessä satsissa olevista julkaisuista, ko. julkaisuilla on eri arvot kentässä dupl_JulkaisunTunnus, mikä huomioidaan alla CTE:ssä.
              Aluksi selvitetään suurin luotu Yhteisjulkaisu_ID. Se ei ole välttämättä sama kuin suurin sarakkeessa Yhteisjulkaisu_ID oleva arvo, koska 1-n viimeksi luotua yhteisjulkaisua on voitu purkaa.
             */
+
+            SqlConn.Avaa();
+
             SqlConn.cmd.CommandText = @"
                 IF EXISTS (
 	                SELECT 1
@@ -781,7 +822,6 @@ namespace Duplik_ja_yhtJulk_tunnistus
 	                FROM FilteredRows R1
 	                INNER JOIN OrderedRows R2 ON R2.julkaisuntunnus = R1.julkaisuntunnus
                 END";
-
             SqlConn.cmd.ExecuteNonQuery();
 
             SqlConn.Sulje();

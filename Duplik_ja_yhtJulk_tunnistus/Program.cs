@@ -250,6 +250,7 @@ namespace Duplik_ja_yhtJulk_tunnistus
             tietokantaoperaatiot.Paivita_duplikaatit();
 
             // Jos yhteisjulkaisu
+            tietokantaoperaatiot.Tarkista_yhteisjulkaisu_id();
             tietokantaoperaatiot.Luo_yhteisjulkaisut();
             tietokantaoperaatiot.Paivita_yhteisjulkaisut();
 
